@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: oomlet
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: oomlet
+  template:
+    metadata:
+      labels:
+        app: oomlet
+    spec:
+      containers:
+      - name: oomlet
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        ports:
+        - containerPort: 8080
+        env:
+        - name: JAVA_OPTS
+          value: "-Xms128m -Xmx400m"
+        resources:
+{{- toYaml .Values.resources | nindent 10 }}

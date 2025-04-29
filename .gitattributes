@@ -1,0 +1,40 @@
+# Ensure consistent line endings
+* text=auto
+
+# Treat Java source files as text and enforce LF endings
+*.java text eol=lf
+
+# Treat YAML, XML, JSON, and configuration files properly
+*.yml text eol=lf
+*.yaml text eol=lf
+*.xml text eol=lf
+*.json text eol=lf
+*.properties text eol=lf
+*.env text eol=lf
+
+# Shell scripts (force LF endings)
+*.sh text eol=lf
+
+# Windows batch scripts (keep CRLF)
+*.cmd text eol=crlf
+*.bat text eol=crlf
+
+# Markdown and documentation
+*.md text eol=lf
+
+# Git attributes for archives
+*.zip binary
+*.jar binary
+
+# Helm chart files
+helm/** text eol=lf
+
+# Docker files
+*.dockerfile text eol=lf
+
+# Prevent Git from normalizing images (if ever added)
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.svg text
