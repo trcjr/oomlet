@@ -1,0 +1,33 @@
+name: Publish Artifacts
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Package Sources
+        run: |
+          zip -r source.zip .
+          tar czvf source.tar.gz .
+
+      - name: Upload Source Archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: source-archives
+          path: |
+            source.zip
+            source.tar.gz
+
+      - name: Upload JAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: oomlet-jar
+          path: target/oomlet-*.jar

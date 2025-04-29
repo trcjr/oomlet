@@ -1,0 +1,23 @@
+name: Inclusive Language Check
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  woke-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Install woke
+        run: |
+          curl -sSfL https://github.com/get-woke/woke/releases/latest/download/woke_Linux_x86_64.tar.gz | tar -xz
+          sudo mv woke /usr/local/bin/
+
+      - name: Run woke
+        run: woke .
