@@ -1,4 +1,4 @@
-package com.github.trcjr.oomlet;
+package com.github.trcjr.oomlet.controller;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

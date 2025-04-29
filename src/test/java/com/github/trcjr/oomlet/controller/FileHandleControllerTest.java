@@ -1,4 +1,4 @@
-package com.github.trcjr.oomlet;
+package com.github.trcjr.oomlet.controller;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -7,6 +7,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.test.web.servlet.MockMvc;
+
+import com.github.trcjr.oomlet.controller.FileHandleController;
 
 @WebMvcTest(FileHandleController.class)
 class FileHandleControllerTest {

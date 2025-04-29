@@ -1,0 +1,17 @@
+- uri: "https://httpbin.org/status/200"
+  method: "GET"
+  # headers:
+  #   Authorization: "Bearer dummy-token"
+  payload: null
+
+# - uri: "https://httpbin.org/status/404"
+#   method: "GET"
+#   headers: {}
+#   payload: null
+
+# - uri: "https://postman-echo.com/post"
+#   method: "POST"
+#   headers:
+#     Content-Type: "application/json"
+#   payload: '{"key": "value"}'
+  
