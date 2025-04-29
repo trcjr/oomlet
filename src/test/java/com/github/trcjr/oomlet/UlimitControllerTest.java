@@ -53,7 +53,7 @@ class UlimitControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith("application/json"))
                 .andExpect(jsonPath("$").exists())
-                .andExpect(jsonPath("$.['open files']").exists()); // Stronger: check for known field
+                .andExpect(jsonPath("$.['open_files']").exists()); // Stronger: check for known field
     }
 
     @Test
