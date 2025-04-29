@@ -9,8 +9,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
+
+import com.github.trcjr.oomlet.dto.CpuBurnResponse;
 
 @RestController
 public class CpuBurnController {
@@ -18,7 +18,7 @@ public class CpuBurnController {
     private static final Logger logger = LoggerFactory.getLogger(CpuBurnController.class);
 
     @GetMapping("/api/burn-cpu")
-    public ResponseEntity<Map<String, Object>> burnCpu(
+    public ResponseEntity<CpuBurnResponse> burnCpu(
             @RequestParam(defaultValue = "1000") long millis,
             @RequestParam(defaultValue = "1") int threads) {
 
@@ -44,17 +44,15 @@ public class CpuBurnController {
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 logger.error("CPU burn interrupted", e);
-                return ResponseEntity.status(500).body(null);
+                return ResponseEntity.status(500).body(
+                    new CpuBurnResponse(millis, threads, "interrupted")
+                );
             }
         }
 
         logger.info("CPU burn complete");
 
-        Map<String, Object> response = new HashMap<>();
-        response.put("requestedMillis", millis);
-        response.put("requestedThreads", threads);
-        response.put("status", "completed");
-
+        CpuBurnResponse response = new CpuBurnResponse(millis, threads, "completed");
         return ResponseEntity.ok(response);
     }
 }
