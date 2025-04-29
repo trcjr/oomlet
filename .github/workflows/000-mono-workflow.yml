@@ -8,7 +8,6 @@ on:
   workflow_dispatch:
 
 jobs:
-    
   woke:
     name: Inclusive Language Check
     runs-on: ubuntu-latest
@@ -21,7 +20,6 @@ jobs:
         with:
           # Cause the check to fail on any broke rules
           fail-on-error: true
-
 
   build-test:
     name: Build and Test
@@ -104,19 +102,6 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
-
-      - name: Package Sources
-        run: |
-          zip -r ../source.zip .
-          tar czvf ../source.tar.gz .
-
-      - name: Upload Source Archive
-        uses: actions/upload-artifact@v4
-        with:
-          name: source-archives
-          path: |
-            ../source.zip
-            ../source.tar.gz
 
       - name: Upload JAR
         uses: actions/upload-artifact@v4
