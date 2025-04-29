@@ -10,6 +10,12 @@ jobs:
   docker-snapshot:
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: read
+      packages: write
+      attestations: write
+      id-token: write
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -36,7 +42,10 @@ jobs:
       - name: Build and Push develop-SNAPSHOT
         uses: docker/build-push-action@v5
         with:
+          platforms: linux/amd64,linux/arm64
           context: .
           push: true
           tags: |
+            ghcr.io/${{ github.repository_owner }}/oomlet:develop
             ghcr.io/${{ github.repository_owner }}/oomlet:develop-SNAPSHOT
+            ghcr.io/${{ github.repository_owner }}/oomlet:develop-SNAPSHOT-${{ github.sha }}
