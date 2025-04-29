@@ -26,11 +26,6 @@ out/
 # Environment files
 .env
 
-# Maven wrapper
-.mvn/
-!/.mvn/wrapper/maven-wrapper.jar
-mvnw
-mvnw.cmd
 
 # JaCoCo coverage reports
 jacoco.exec
