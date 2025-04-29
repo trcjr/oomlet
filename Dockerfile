@@ -5,7 +5,7 @@ FROM openjdk:22-jdk-slim
 WORKDIR /app
 
 # Copy the built JAR file into the container
-COPY target/oomlet-0.0.1.jar app.jar
+COPY target/oomlet-*.jar app.jar
 
 # Expose port 8080 (default Spring Boot port)
 EXPOSE 8080
