@@ -22,9 +22,24 @@ jobs:
 
       - name: Install OWASP Dependency-Check
         run: |
-          wget https://github.com/jeremylong/DependencyCheck/releases/download/v8.4.0/dependency-check-8.4.0-release.zip
-          unzip dependency-check-8.4.0-release.zip -d dependency-check
-          ./dependency-check/bin/dependency-check.sh --project "oomlet" --scan . --format HTML --out dependency-check-report.html
+          mkdir -p dependency-check
+          wget https://github.com/jeremylong/DependencyCheck/releases/download/v8.4.0/dependency-check-8.4.0-release.zip -O dc.zip
+          unzip -q dc.zip -d dependency-check
+          ls dependency-check
+          ./dependency-check/dependency-check/bin/dependency-check.sh --project "oomlet" --scan . --format HTML --out dependency-check-report.html
+
+      - name: Export OWASP DC cache path
+        run: echo "OWASP_DC_CACHE=/github/home/.dependency-check" >> $GITHUB_ENV
+
+      - name: Also output SARIF report
+        run: |
+          ./dependency-check/bin/dependency-check.sh --project "oomlet" --scan . --format SARIF --out dependency-check-report.sarif
+
+      - name: Upload SARIF report
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-check-report-sarif
+          path: dependency-check-report.sarif
 
       - name: Upload security report
         uses: actions/upload-artifact@v4
@@ -39,7 +54,17 @@ jobs:
 
     steps:
       - name: Install Trivy
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@0.14.0
         with:
           scan-type: config
           scan-ref: .
+          severity: HIGH,CRITICAL
+          exit-code: 1
+
+      - name: Scan Docker Image
+        uses: aquasecurity/trivy-action@0.14.0
+        with:
+          scan-type: image
+          image-ref: ghcr.io/${{ github.repository_owner }}/oomlet:latest
+          severity: HIGH,CRITICAL
+          exit-code: 1
