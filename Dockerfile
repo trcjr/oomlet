@@ -1,7 +1,7 @@
 # ========================
 # Stage 1 - Build
 # ========================
-FROM maven:3.9.6-eclipse-temurin-22 AS builder
+FROM maven:3.9.6-eclipse-temurin-21 AS builder
 
 WORKDIR /build
 
@@ -13,7 +13,7 @@ RUN mvn clean verify package
 # ========================
 # Stage 2 - Runtime
 # ========================
-FROM eclipse-temurin:22-jre-jammy
+FROM eclipse-temurin:21-jre-jammy
 
 
 
