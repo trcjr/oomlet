@@ -14,10 +14,8 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Install woke
-        run: |
-          curl -sSfL https://github.com/get-woke/woke/releases/latest/download/woke_Linux_x86_64.tar.gz | tar -xz
-          sudo mv woke /usr/local/bin/
-
-      - name: Run woke
-        run: woke .
+      - name: woke
+        uses: get-woke/woke-action@v0
+        with:
+          # Cause the check to fail on any broke rules
+          fail-on-error: true
