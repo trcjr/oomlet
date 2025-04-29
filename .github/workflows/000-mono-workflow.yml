@@ -1,0 +1,125 @@
+name: Build OOMlet
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+    
+  woke:
+    name: Inclusive Language Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: woke
+        uses: get-woke/woke-action@v0
+        with:
+          # Cause the check to fail on any broke rules
+          fail-on-error: true
+
+
+  build-test:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    needs: woke
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Build and Verify with Maven
+        run: ./mvnw clean verify
+
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: target/surefire-reports/
+
+  docker:
+    name: Docker Build and Push
+    runs-on: ubuntu-latest
+    needs: build-test
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build Docker Image
+        run: |
+          docker build -t ghcr.io/${{ github.repository_owner }}/oomlet:latest .
+
+      - name: Push Docker Image
+        run: |
+          docker push ghcr.io/${{ github.repository_owner }}/oomlet:latest
+
+  helm:
+    name: Helm Package and Upload
+    runs-on: ubuntu-latest
+    needs: docker
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: latest
+
+      - name: Package Helm Chart
+        run: |
+          helm package helm/oomlet
+          mkdir -p helm-charts
+          mv oomlet-*.tgz helm-charts/
+
+      - name: Upload Helm Chart
+        uses: actions/upload-artifact@v4
+        with:
+          name: helm-charts
+          path: helm-charts/
+
+  publish:
+    name: Publish Artifacts
+    runs-on: ubuntu-latest
+    needs: build-test
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Package Sources
+        run: |
+          zip -r ../source.zip .
+          tar czvf ../source.tar.gz .
+
+      - name: Upload Source Archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: source-archives
+          path: |
+            ../source.zip
+            ../source.tar.gz
+
+      - name: Upload JAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: oomlet-jar
+          path: target/oomlet-*.jar
