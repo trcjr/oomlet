@@ -48,7 +48,8 @@ java -jar target/oomlet-0.0.1-SNAPSHOT.jar
 | `/api/health-toggle/disable` | POST | Set health indicator to **fail** |
 | `/api/status?responseCode=404` | GET | Simulate arbitrary HTTP status codes |
 | `/api/open-files?count=100` | GET | Attempt to open 100 file handles (temporary files) and report how many succeeded |
-| `/api/allocate-memory?bytes=104857600` | GET | Attempt to allocate 100 MB of memory and report how much was successfully allocated |
+| `/api/allocate-memory?bytes=104857600` | GET | Attempt to allocate 100 MB of memory and report how much was successfully |
+| `/api/burn-cpu?millis=1000&threads=2` | GET | Simulates CPU load by consuming CPU cycles across a configurable number of threads for a specified duration in milliseconds.allocated |
 
 ---
 
