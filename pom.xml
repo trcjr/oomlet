@@ -5,7 +5,7 @@
 
     <groupId>com.github.trcjr</groupId>
     <artifactId>oomlet</artifactId>
-    <version>0.0.4</version>
+    <version>0.0.6</version>
     <name>OOMlet</name>
     <description>Stress-test your system limits, scramble your memory, and crash cleanly.</description>
 
