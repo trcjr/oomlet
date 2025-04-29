@@ -1,210 +1,194 @@
-# OOMlet
+# 🥚 OOMlet
 
 ![Build Status](https://github.com/trcjr/oomlet/actions/workflows/build.yml/badge.svg)
 [![Coverage Status](https://coveralls.io/repos/github/trcjr/oomlet/badge.svg?branch=main)](https://coveralls.io/github/trcjr/oomlet?branch=main)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 ![Crashing With Style](https://img.shields.io/badge/crashing-with--style-yellow)
 
-✅ A lightweight QA and debugging Spring Boot application designed to help you test, monitor, and simulate application health and response behavior.
+**OOMlet** — a lightweight, chaos-friendly QA and debugging Spring Boot application designed to help you **test**, **stress**, and **harden** your systems.
 
-## 🥚 About OOMlet
-
-When you need to scramble your systems, crash your apps gently, or just cook up some chaos in your infrastructure —  
-**OOMlet** is here to crack a few eggs so you can build stronger, more resilient software.
-
-🍳 **Crack limits. Scramble resources. Debug better.**
+🍳 **Crack limits. Scramble resources. Cook up resilience.**
 
 ---
 
 ## 🚀 Features
 
-- Dynamic health check toggling (pass/fail)
-- Simulated HTTP response codes via API
-- Full Spring Boot Actuator endpoints
-- Graceful handling of OS signals (SIGINT, SIGTERM)
-- Code coverage enforcement (80% minimum)
-- Built for local, Docker, and Kubernetes environments
+- ✅ Dynamic health check toggling (pass/fail)
+- ✅ Simulate arbitrary HTTP response codes
+- ✅ Memory and file handle stress testing endpoints
+- ✅ CPU load simulation
+- ✅ Graceful OS signal handling (SIGINT, SIGTERM, USR1, USR2)
+- ✅ Runtime log level adjustment (dynamic)
+- ✅ Full Actuator integration
+- ✅ Code coverage enforcement (80% minimum)
+- ✅ Built for local development, Docker, and Kubernetes
+
+---
 
 ## 🛠 Quick Start
 
-1. **Build the application:**
+### 1. Build the application
 
 ```bash
-mvn clean package
+./mvnw clean package
 ```
 
-2. **Run the application:**
+(Uses the Maven Wrapper for portability.)
+
+### 2. Run the application
 
 ```bash
-java -jar target/oomlet-0.0.1-SNAPSHOT.jar
+java -jar target/oomlet-0.0.7.jar
 ```
 
-3. **Use the available endpoints:**
+(Optional) Override port:
+
+```bash
+SERVER_PORT=9090 java -jar target/oomlet-0.0.7.jar
+```
+
+### 3. Explore available endpoints
 
 | Endpoint | Method | Purpose |
 |:---------|:-------|:--------|
 | `/actuator/health` | GET | Standard Spring Boot health check |
-| `/api/health-toggle/enable` | POST | Set health indicator to **pass** |
-| `/api/health-toggle/disable` | POST | Set health indicator to **fail** |
-| `/api/status?responseCode=404` | GET | Simulate arbitrary HTTP status codes |
-| `/api/open-files?count=100` | GET | Attempt to open 100 file handles (temporary files) and report how many succeeded |
-| `/api/allocate-memory?bytes=104857600` | GET | Attempt to allocate 100 MB of memory and report how much was successfully allocated |
+| `/api/health-toggle/enable` | POST | Set custom health indicator to **pass** |
+| `/api/health-toggle/disable` | POST | Set custom health indicator to **fail** |
+| `/api/status?responseCode=404` | GET | Simulate specific HTTP status responses |
+| `/api/open-files?count=100` | GET | Stress test file descriptor limits |
+| `/api/allocate-memory?bytes=104857600` | GET | Allocate memory blocks to stress JVM heap |
+| `/api/burn-cpu?millis=1000&threads=2` | GET | Generate CPU load |
+| `/api/ulimits` | GET | View OS resource limits (parsed `ulimit`) |
+| `/api/logging/spring?level=DEBUG` | POST | Change Spring framework log level dynamically |
 
 ---
 
-## 🧪 Memory Allocation Stress Test Endpoint
+## 🧪 Stress Testing Endpoints
+
+### Memory Allocation
 
 **Endpoint:**  
 `GET /api/allocate-memory?bytes=N`
 
-**Parameters:**
+- Attempts to allocate memory in 1MB blocks.
+- Reports `requestedBytes`, `allocatedBytes`, and `failedBytes`.
+- Example:
+  ```bash
+  curl 'http://localhost:8080/api/allocate-memory?bytes=104857600'
+  ```
 
-- `bytes` — (required) Number of bytes to attempt to allocate.
-
-**Behavior:**
-
-- Attempts to allocate memory in 1 MB blocks until the requested number of bytes is allocated or an `OutOfMemoryError` occurs.
-- Cleans up and releases all allocated memory after the operation.
-- Returns a JSON report with the number of bytes requested, successfully allocated, and failed.
-
-**Example request:**
-
-```bash
-curl 'http://localhost:8080/api/allocate-memory?bytes=104857600'
-```
-
-**Example JSON response:**
-
-```json
-{
-  "requestedBytes": 104857600,
-  "allocatedBytes": 104857600,
-  "failedBytes": 0
-}
-```
-
-**Use cases:**
-
-- Explore JVM memory limits (e.g., heap size, memory limits in containers).
-- Stress-test system memory management without crashing the server.
-- Observe behavior near OutOfMemoryError thresholds.
-
-✅ All allocated memory is released immediately after handling the request.
-✅ Supports safe memory limit exploration.
-
----
-
-## 🧪 File Handle Stress Test Endpoint
+### File Handle Load
 
 **Endpoint:**  
 `GET /api/open-files?count=N`
 
-**Parameters:**
+- Opens `N` temporary files (read-only) and reports how many succeeded.
+- Example:
+  ```bash
+  curl 'http://localhost:8080/api/open-files?count=100'
+  ```
 
-- `count` — (required) Number of file handles to attempt to open.
+### CPU Burn
 
-**Behavior:**
+**Endpoint:**  
+`GET /api/burn-cpu?millis=5000&threads=4`
 
-- Attempts to open `N` temporary files in read-only mode.
-- Closes all opened file handles before responding.
-- Returns a JSON report with the number of handles requested, successfully opened, and failed.
-
-**Example request:**
-
-```bash
-curl 'http://localhost:8080/api/open-files?count=50'
-```
-
-**Example JSON response:**
-
-```json
-{
-  "requested": 50,
-  "successfullyOpened": 50,
-  "failed": 0
-}
-```
-
-**Use cases:**
-
-- Explore system limits (e.g., ulimit settings).
-- Stress-test file descriptor usage without system crash.
-- Safe automatic cleanup after each request.
-
-✅ All file handles are properly closed after request handling.
-✅ No open handle leaks.
+- Consumes CPU cycles for a specified duration and number of threads.
+- Example:
+  ```bash
+  curl 'http://localhost:8080/api/burn-cpu?millis=5000&threads=4'
+  ```
 
 ---
 
-## 🧪 Ulimit Information Endpoint
+## 📖 API - Other Useful Endpoints
 
-**Endpoint:**  
-`GET /api/ulimits`
-
-**Behavior:**
-
-- Executes `ulimit -a` on the underlying operating system.
-- Parses and returns system resource limits as JSON key-value pairs.
-
-**Example request:**
+### Health Check Toggle
 
 ```bash
-curl 'http://localhost:8080/api/ulimits'
+curl -X POST 'http://localhost:8080/api/health-toggle/disable'
+curl -X POST 'http://localhost:8080/api/health-toggle/enable'
 ```
 
-**Example JSON response:**
+Dynamically simulate health degradation and recovery.
 
-```json
-{
-  "core file size": "0",
-  "data seg size": "unlimited",
-  "file size": "unlimited",
-  "max locked memory": "unlimited",
-  "max memory size": "unlimited",
-  "open files": "10240",
-  "pipe size": "1",
-  "stack size": "8176",
-  "cpu time": "unlimited",
-  "max user processes": "1333",
-  "virtual memory": "unlimited"
-}
+---
+
+### Runtime Log Level Adjustment
+
+**Change Spring log level at runtime:**
+
+```bash
+curl -X POST 'http://localhost:8080/api/logging/spring?level=DEBUG'
 ```
 
-**Use cases:**
+**Get current Spring log level:**
 
-- Explore system-imposed resource limits (e.g., open files, stack size).
-- Debug and verify container or VM restrictions.
+```bash
+curl 'http://localhost:8080/api/logging/spring'
+```
 
-✅ Provides clear insights into runtime system limits.
-✅ Useful for debugging Docker, Kubernetes, and bare metal environments.
+---
+
+## 📦 Docker and Kubernetes Support
+
+### Build Docker Image
+
+```bash
+docker build -t oomlet:0.0.7 .
+```
+
+### Run Locally
+
+```bash
+docker run -p 8080:8080 oomlet:0.0.7
+```
+
+✅ Designed to be liveness- and readiness-probe friendly.
+
+✅ Docker image built for minimal size and startup speed.
+
+---
+
+## ⚙️ Configuration
+
+| Variable | Purpose | Example |
+|:---------|:--------|:--------|
+| `SERVER_PORT` | Override server port | `SERVER_PORT=9090` |
+| `JAVA_OPTS` | Pass JVM options | `JAVA_OPTS="-Xmx512m"` |
+
+---
+
+## 🧪 Testing and Code Coverage
+
+Run unit and integration tests with coverage:
+
+```bash
+./mvnw clean verify
+```
+
+View code coverage report:
+
+```bash
+open target/site/jacoco/index.html
+```
+
+✅ Enforced 80%+ line coverage.
+
+✅ Build will fail if coverage threshold is not met.
 
 ---
 
 ## 🚦 Graceful Shutdown and Signal Handling
 
-oomlet includes built-in OS signal handling to ensure **graceful shutdown** and **extensible behavior** in environments like **Docker** and **Kubernetes**.
+OOMlet listens for:
 
-**Supported signals:**
+- **SIGINT** (`Ctrl+C`)
+- **SIGTERM** (`docker stop`, `kubectl delete pod`)
+- **SIGHUP**, **SIGQUIT**, **SIGUSR1**, **SIGUSR2**
 
-- **SIGINT** (`Ctrl+C` from terminal): Initiates graceful shutdown
-- **SIGTERM** (sent by `docker stop`, `kubectl delete pod`, etc.): Initiates graceful shutdown
-- **SIGHUP** (terminal hangup, reload trigger): Logged, no-op (optional config reload in future)
-- **SIGQUIT** (Ctrl+\ forced quit): Initiates graceful shutdown
-- **SIGUSR1** (user-defined action 1): Logged, placeholder for custom actions
-- **SIGUSR2** (user-defined action 2): Logged, placeholder for custom actions
-
-### How It Works
-
-- Upon startup, oomlet registers handlers for `INT`, `TERM`, `HUP`, `QUIT`, `USR1`, and `USR2` signals.
-- Signals are logged with detailed information.
-- Critical shutdown signals initiate a clean termination through Spring lifecycle hooks.
-- User-defined signals are reserved for future expansions (e.g., live health toggle or reloads).
-
-✅ No abrupt shutdowns  
-✅ No resource leaks  
-✅ Clean exit in local, containerized, and cloud environments
-
-📄 Related class: [`SignalHandlerService`](src/main/java/com/github/trcjr/oomlet/SignalHandlerService.java)
+✅ Critical signals trigger a graceful Spring Boot shutdown.  
+✅ Custom signals (USR1, USR2) are logged for future hooks.
 
 ---
 
@@ -222,80 +206,34 @@ oomlet includes built-in OS signal handling to ensure **graceful shutdown** and 
 │    (Embedded Web Server)    │
 └─────────────┬───────────────┘
               │
-    ┌─────────┼──────────┬─────────────────────────┐
-    │                    │                         │
-┌───▼───┐         ┌──────▼──────┐  ┌───────────────▼──────────────┐
-│ /api/ │         │ /actuator/  │  │ /api/open-files              │
-│status │         │health toggle│  │(file handle stress testing)  │
-└───┬───┘         └──────┬──────┘  └──────────────────────────────┘
-    │                    │
-    │                    │
-    ▼                    ▼
-Custom HTTP      Custom Health Indicator
-Responses         (pass/fail toggleable)
-
+    ┌─────────┼──────────┬───────────────┬──────────────┬─────────────┐
+    │         │           │               │              │
+┌───▼───┐ ┌────▼────┐ ┌────▼────┐ ┌────────▼──────┐ ┌─────▼─────┐
+│ /api/ │ │ /api/   │ │ /api/   │ │ /api/ulimits  │ │ /actuator/│
+│status │ │open-files││allocate │ │ /api/burn-cpu │ │health, etc│
+└───────┘ └──────────┘└─────────┘└───────────────┘ └───────────┘
               │
               ▼
     ┌───────────────────────┐
-    │ SignalHandlerService   │
-    │ (SIGINT / SIGTERM, etc.)│
+    │ SignalHandlerService  │
     └─────────┬──────────────┘
               ▼
        Graceful Shutdown
 ```
 
-✅ Lightweight  
-✅ Easy to understand  
-✅ GitHub markdown compatible  
-✅ No external images needed
-
----
-
-## 🧪 Testing and Coverage
-
-- Run full build and tests:
-
-```bash
-mvn clean verify
-```
-
-- View coverage report:
-
-```bash
-open target/site/jacoco/index.html
-```
-
-✅ Build will fail if test coverage drops below **80%**.
-
----
-
-## 🐳 Docker Support
-
-Build Docker image:
-
-```bash
-docker build -t oomlet:latest .
-```
-
-Run locally:
-
-```bash
-docker run -p 8080:8080 oomlet:latest
-```
-
-✅ Ready for Kubernetes deployments.
-
 ---
 
 ## 📄 License
 
-Licensed under the [MIT License](LICENSE).
+Released under the [MIT License](LICENSE).
 
 ---
 
 ## ✍️ Contributing
 
-Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+We welcome issues, suggestions, and pull requests!
+
+Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ---
 

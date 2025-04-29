@@ -1,4 +1,4 @@
-package com.github.trcjr.oomlet;
+package com.github.trcjr.oomlet.controller;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,7 +45,7 @@ public class UlimitController {
                     if (!line.isEmpty()) {
                         String[] parts = line.split("\\s+\\(.*?\\)\\s+");
                         if (parts.length == 2) {
-                            limits.put(parts[0].trim(), parts[1].trim());
+                            limits.put(parts[0].trim().replaceAll("\\s+", "_"), parts[1].trim());
                         }
                     }
                 }

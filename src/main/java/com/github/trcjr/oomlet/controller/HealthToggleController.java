@@ -1,8 +1,10 @@
-package com.github.trcjr.oomlet;
+package com.github.trcjr.oomlet.controller;
 
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.github.trcjr.oomlet.HealthToggleService;
 
 @RestController
 @RequestMapping("/api/health-toggle")
@@ -24,4 +26,5 @@ public class HealthToggleController {
         healthToggleService.setHealthy(false);
         return "Health set to DOWN";
     }
+    
 }

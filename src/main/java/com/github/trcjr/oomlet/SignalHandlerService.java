@@ -7,7 +7,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import sun.misc.Signal;
-import sun.misc.SignalHandler;
 
 @Service
 public class SignalHandlerService {
