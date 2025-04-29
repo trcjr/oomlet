@@ -1,19 +1,19 @@
-name: Release Please
+name: Create GitHub Release
 
 on:
   push:
-    branches:
-      - main
+    tags:
+      - 'v*.*.*'
 
 jobs:
-  release:
+  create-release:
     runs-on: ubuntu-latest
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v4
 
-    - name: Release Please
-      uses: google-github-actions/release-please-action@v4
-      with:
-        release-type: java
-        package-name: oomlet
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
