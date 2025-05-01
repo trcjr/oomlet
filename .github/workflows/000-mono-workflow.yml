@@ -90,6 +90,8 @@ jobs:
           mv oomlet-*.tgz helm-charts/
 
       - name: Upload Helm Chart
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         uses: actions/upload-artifact@v4
         with:
           name: helm-charts
