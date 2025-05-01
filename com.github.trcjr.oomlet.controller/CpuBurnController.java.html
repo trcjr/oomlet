@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CpuBurnController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">OOMlet</a> &gt; <a href="index.source.html" class="el_package">com.github.trcjr.oomlet.controller</a> &gt; <span class="el_source">CpuBurnController.java</span></div><h1>CpuBurnController.java</h1><pre class="source lang-java linenums">package com.github.trcjr.oomlet.controller;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import com.github.trcjr.oomlet.dto.CpuBurnResponse;
+
+@RestController
+<span class="fc" id="L16">public class CpuBurnController {</span>
+
+<span class="fc" id="L18">    private static final Logger logger = LoggerFactory.getLogger(CpuBurnController.class);</span>
+
+    @GetMapping(&quot;/api/burn-cpu&quot;)
+    public ResponseEntity&lt;CpuBurnResponse&gt; burnCpu(
+            @RequestParam(defaultValue = &quot;1000&quot;) long millis,
+            @RequestParam(defaultValue = &quot;1&quot;) int threads) {
+
+<span class="fc" id="L25">        logger.info(&quot;Received CPU burn request: millis={} threads={}&quot;, millis, threads);</span>
+
+<span class="fc" id="L27">        long endTime = System.currentTimeMillis() + millis;</span>
+<span class="fc" id="L28">        List&lt;Thread&gt; workers = new ArrayList&lt;&gt;();</span>
+
+<span class="fc bfc" id="L30" title="All 2 branches covered.">        for (int i = 0; i &lt; threads; i++) {</span>
+<span class="fc" id="L31">            Thread worker = new Thread(() -&gt; {</span>
+<span class="fc bfc" id="L32" title="All 2 branches covered.">                while (System.currentTimeMillis() &lt; endTime) {</span>
+<span class="fc" id="L33">                    double x = Math.random() * Math.random(); // Do something to waste CPU</span>
+<span class="fc" id="L34">                }</span>
+<span class="fc" id="L35">            });</span>
+<span class="fc" id="L36">            worker.start();</span>
+<span class="fc" id="L37">            workers.add(worker);</span>
+        }
+
+        // Optionally wait for all threads to finish
+<span class="fc bfc" id="L41" title="All 2 branches covered.">        for (Thread worker : workers) {</span>
+            try {
+<span class="fc" id="L43">                worker.join();</span>
+<span class="nc" id="L44">            } catch (InterruptedException e) {</span>
+<span class="nc" id="L45">                Thread.currentThread().interrupt();</span>
+<span class="nc" id="L46">                logger.error(&quot;CPU burn interrupted&quot;, e);</span>
+<span class="nc" id="L47">                return ResponseEntity.status(500).body(</span>
+                    new CpuBurnResponse(millis, threads, &quot;interrupted&quot;)
+                );
+<span class="fc" id="L50">            }</span>
+<span class="fc" id="L51">        }</span>
+
+<span class="fc" id="L53">        logger.info(&quot;CPU burn complete&quot;);</span>
+
+<span class="fc" id="L55">        CpuBurnResponse response = new CpuBurnResponse(millis, threads, &quot;completed&quot;);</span>
+<span class="fc" id="L56">        return ResponseEntity.ok(response);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

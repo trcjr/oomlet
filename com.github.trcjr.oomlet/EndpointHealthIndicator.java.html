@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EndpointHealthIndicator.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">OOMlet</a> &gt; <a href="index.source.html" class="el_package">com.github.trcjr.oomlet</a> &gt; <span class="el_source">EndpointHealthIndicator.java</span></div><h1>EndpointHealthIndicator.java</h1><pre class="source lang-java linenums">package com.github.trcjr.oomlet;
+
+import org.springframework.boot.actuate.health.Health;
+import org.springframework.boot.actuate.health.HealthIndicator;
+import org.springframework.http.HttpMethod;
+import org.springframework.stereotype.Component;
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
+
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+@Component
+public class EndpointHealthIndicator implements HealthIndicator {
+
+    private final WebClient webClient;
+    private final List&lt;HttpEndpointCheck&gt; endpointsToCheck;
+
+<span class="fc" id="L21">    public EndpointHealthIndicator() {</span>
+<span class="fc" id="L22">        this.webClient = WebClient.builder()</span>
+<span class="fc" id="L23">                .codecs(configurer -&gt; configurer.defaultCodecs().maxInMemorySize(16 * 1024 * 1024))</span>
+<span class="fc" id="L24">                .build();</span>
+<span class="fc" id="L25">        this.endpointsToCheck = loadEndpointsFromYaml();</span>
+<span class="fc" id="L26">    }</span>
+
+    private List&lt;HttpEndpointCheck&gt; loadEndpointsFromYaml() {
+        try {
+<span class="fc" id="L30">            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.dataformat.yaml.YAMLMapper();</span>
+<span class="fc" id="L31">            java.nio.file.Path path = java.nio.file.Paths.get(&quot;/opt/endpoint_health_indicator_config.yml&quot;);</span>
+<span class="pc bpc" id="L32" title="1 of 2 branches missed.">            if (!java.nio.file.Files.exists(path)) {</span>
+<span class="fc" id="L33">                return List.of();</span>
+            }
+<span class="nc" id="L35">            java.util.List&lt;HttpEndpointCheck&gt; endpoints = java.util.Arrays.asList(</span>
+<span class="nc" id="L36">                    mapper.readValue(java.nio.file.Files.newInputStream(path), HttpEndpointCheck[].class)</span>
+            );
+<span class="nc" id="L38">            return endpoints;</span>
+<span class="nc" id="L39">        } catch (Exception e) {</span>
+<span class="nc" id="L40">            return List.of();</span>
+        }
+    }
+
+    @Override
+    public Health health() {
+<span class="fc" id="L46">        List&lt;String&gt; upEndpoints = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L47">        List&lt;String&gt; downEndpoints = new ArrayList&lt;&gt;();</span>
+
+<span class="pc bpc" id="L49" title="1 of 2 branches missed.">        for (HttpEndpointCheck check : endpointsToCheck) {</span>
+            try {
+<span class="nc" id="L51">                boolean success = performCheck(check);</span>
+<span class="nc bnc" id="L52" title="All 2 branches missed.">                if (success) {</span>
+<span class="nc" id="L53">                    upEndpoints.add(check.getUri());</span>
+                } else {
+<span class="nc" id="L55">                    downEndpoints.add(check.getUri());</span>
+                }
+<span class="nc" id="L57">            } catch (Exception e) {</span>
+<span class="nc" id="L58">                downEndpoints.add(check.getUri());</span>
+<span class="nc" id="L59">            }</span>
+<span class="nc" id="L60">        }</span>
+
+<span class="pc bpc" id="L62" title="1 of 2 branches missed.">        if (downEndpoints.isEmpty()) {</span>
+<span class="fc" id="L63">            return Health.up()</span>
+<span class="fc" id="L64">                    .withDetail(&quot;upEndpoints&quot;, upEndpoints)</span>
+<span class="fc" id="L65">                    .withDetail(&quot;downEndpoints&quot;, downEndpoints)</span>
+<span class="fc" id="L66">                    .build();</span>
+        } else {
+<span class="nc" id="L68">            return Health.down()</span>
+<span class="nc" id="L69">                    .withDetail(&quot;upEndpoints&quot;, upEndpoints)</span>
+<span class="nc" id="L70">                    .withDetail(&quot;downEndpoints&quot;, downEndpoints)</span>
+<span class="nc" id="L71">                    .build();</span>
+        }
+    }
+
+    private boolean performCheck(HttpEndpointCheck check) {
+        try {
+<span class="nc" id="L77">            WebClient.RequestBodySpec requestSpec = webClient.method(HttpMethod.valueOf(check.getMethod().toUpperCase()))</span>
+<span class="nc" id="L78">                    .uri(check.getUri())</span>
+<span class="nc" id="L79">                    .headers(httpHeaders -&gt; {</span>
+<span class="nc bnc" id="L80" title="All 2 branches missed.">                        if (check.getHeaders() != null) {</span>
+<span class="nc" id="L81">                            check.getHeaders().forEach(httpHeaders::add);</span>
+                        }
+<span class="nc" id="L83">                    });</span>
+
+<span class="nc" id="L85">            Mono&lt;Integer&gt; responseMono = requestSpec</span>
+<span class="nc" id="L86">                    .retrieve()</span>
+<span class="nc" id="L87">                    .toBodilessEntity()</span>
+<span class="nc" id="L88">                    .timeout(Duration.ofSeconds(3))</span>
+<span class="nc" id="L89">                    .map(responseEntity -&gt; responseEntity.getStatusCode().value());</span>
+
+<span class="nc" id="L91">            Integer statusCode = responseMono.block();</span>
+
+<span class="nc bnc" id="L93" title="All 6 branches missed.">            return statusCode != null &amp;&amp; statusCode &gt;= 200 &amp;&amp; statusCode &lt; 300;</span>
+<span class="nc" id="L94">        } catch (Exception e) {</span>
+<span class="nc" id="L95">            return false;</span>
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
