@@ -14,6 +14,10 @@ public class CpuBurnResponse {
         this.status = status;
     }
 
+    public CpuBurnResponse(long l, int i, long m, int j) {
+        //TODO Auto-generated constructor stub
+    }
+
     public long getRequestedMillis() {
         return requestedMillis;
     }

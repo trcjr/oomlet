@@ -6,26 +6,24 @@ import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
+import java.util.function.Supplier;
 
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 @Component
 public class EndpointHealthIndicator implements HealthIndicator {
 
-    private final WebClient webClient;
-    private final List<HttpEndpointCheck> endpointsToCheck;
+    protected WebClient webClient;
+    protected List<HttpEndpointCheck> endpointsToCheck;
 
-    public EndpointHealthIndicator() {
-        this.webClient = WebClient.builder()
-                .codecs(configurer -> configurer.defaultCodecs().maxInMemorySize(16 * 1024 * 1024))
-                .build();
-        this.endpointsToCheck = loadEndpointsFromYaml();
+    public EndpointHealthIndicator(WebClient webClient, Supplier<List<HttpEndpointCheck>> endpointSupplier) {
+        this.webClient = webClient;
+        this.endpointsToCheck = endpointSupplier.get();
     }
 
-    private List<HttpEndpointCheck> loadEndpointsFromYaml() {
+    protected List<HttpEndpointCheck> loadEndpointsFromYaml() {
         try {
             com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.dataformat.yaml.YAMLMapper();
             java.nio.file.Path path = java.nio.file.Paths.get("/opt/endpoint_health_indicator_config.yml");
@@ -72,7 +70,7 @@ public class EndpointHealthIndicator implements HealthIndicator {
         }
     }
 
-    private boolean performCheck(HttpEndpointCheck check) {
+    protected boolean performCheck(HttpEndpointCheck check) {
         try {
             WebClient.RequestBodySpec requestSpec = webClient.method(HttpMethod.valueOf(check.getMethod().toUpperCase()))
                     .uri(check.getUri())

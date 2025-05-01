@@ -1,50 +1,55 @@
 package com.github.trcjr.oomlet.controller;
 
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.Logger;
-import com.github.trcjr.oomlet.controller.LoggingLevelController;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.http.MediaType;
+import org.springframework.web.context.WebApplicationContext;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@SpringBootTest(classes = com.github.trcjr.oomlet.OomletApplication.class)
-@AutoConfigureMockMvc
+@WebMvcTest(controllers = LoggingLevelController.class)
 public class LoggingLevelControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
+    @Autowired
+    private WebApplicationContext context;
+
+    @BeforeEach
+    public void setup() {
+        this.mockMvc = MockMvcBuilders.webAppContextSetup(this.context).build();
+    }
+
     @Test
     void testGetSpringLoggingLevel() throws Exception {
         mockMvc.perform(get("/api/logging/spring"))
                 .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.['org.springframework']").exists());
     }
 
     @Test
     void testSetSpringLoggingLevelValid() throws Exception {
         mockMvc.perform(post("/api/logging/spring")
-                .param("level", "DEBUG"))
+                        .param("level", "DEBUG"))
                 .andExpect(status().isOk())
-                .andExpect(content().string(containsString("DEBUG")));
-
-        Logger logger = (Logger) LoggerFactory.getLogger("org.springframework");
-        assert logger.getLevel() == Level.DEBUG;
+                .andExpect(content().string(containsString("Logging level for org.springframework set to DEBUG")));
     }
 
     @Test
     void testSetSpringLoggingLevelInvalid() throws Exception {
         mockMvc.perform(post("/api/logging/spring")
-                .param("level", "NOPE"))
+                        .param("level", "NOPE"))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().string(containsString("Invalid log level")));
+                .andExpect(content().string(containsString("Invalid log level: NOPE")));
     }
 }

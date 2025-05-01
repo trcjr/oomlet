@@ -19,24 +19,29 @@ public class UlimitController {
 
     private static final Logger logger = LoggerFactory.getLogger(UlimitController.class);
 
-    private final Supplier<ProcessBuilder> processBuilderSupplier;
+    private final Supplier<Process> processSupplier;
 
     public UlimitController() {
-        this(() -> new ProcessBuilder("bash", "-c", "ulimit -a"));
+        this(() -> {
+            try {
+                return new ProcessBuilder("bash", "-c", "ulimit -a")
+                        .redirectErrorStream(true)
+                        .start();
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to start process", e);
+            }
+        });
     }
 
-    UlimitController(Supplier<ProcessBuilder> processBuilderSupplier) {
-        this.processBuilderSupplier = processBuilderSupplier;
+    UlimitController(Supplier<Process> processSupplier) {
+        this.processSupplier = processSupplier;
     }
 
     @GetMapping("/ulimits")
     public ResponseEntity<Map<String, String>> getUlimits() {
         Map<String, String> limits = new LinkedHashMap<>();
-
         try {
-            ProcessBuilder builder = processBuilderSupplier.get();
-            builder.redirectErrorStream(true);
-            Process process = builder.start();
+            Process process = processSupplier.get();
 
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
                 String line;
@@ -50,6 +55,7 @@ public class UlimitController {
                     }
                 }
             }
+
             int exitCode = process.waitFor();
             if (exitCode != 0) {
                 logger.warn("ulimit command exited with non-zero code: {}", exitCode);
