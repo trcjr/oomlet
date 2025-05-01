@@ -9,23 +9,32 @@ import org.springframework.context.annotation.Configuration;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.function.Supplier;
 
 @Configuration
 public class EndpointCheckConfig {
 
+    private final Path configPath;
+
+    public EndpointCheckConfig() {
+        this(Path.of("/opt/endpoint_health_indicator_config.yml"));
+    }
+
+    // For testing
+    public EndpointCheckConfig(Path customPath) {
+        this.configPath = customPath;
+    }
+
     @Bean
     public Supplier<List<HttpEndpointCheck>> endpointCheckSupplier() {
         return () -> {
             try {
-                Path path = Paths.get("/opt/endpoint_health_indicator_config.yml");
-                if (!Files.exists(path)) {
+                if (!Files.exists(configPath)) {
                     return List.of();
                 }
                 ObjectMapper mapper = new YAMLMapper();
-                try (InputStream in = Files.newInputStream(path)) {
+                try (InputStream in = Files.newInputStream(configPath)) {
                     return List.of(mapper.readValue(in, HttpEndpointCheck[].class));
                 }
             } catch (Exception e) {
