@@ -19,6 +19,9 @@
 - ✅ CPU load simulation
 - ✅ Graceful OS signal handling (SIGINT, SIGTERM, USR1, USR2)
 - ✅ Runtime log level adjustment (dynamic)
+- ✅ Crash with specific exit codes
+- ✅ Outbound connectivity tester (ping a URL)
+- ✅ Simulate response latency
 - ✅ Full Actuator integration
 - ✅ Code coverage enforcement (80% minimum)
 - ✅ Built for local development, Docker, and Kubernetes
@@ -27,7 +30,7 @@
 
 ## 🛠 Quick Start
 
-## 📋 Prerequisites
+### 📋 Prerequisites
 
 - Java 17+ (Temurin recommended)
 - Maven 3.8+ (no need to install if using the Maven Wrapper)
@@ -37,8 +40,6 @@
 ```bash
 ./mvnw clean package
 ```
-
-(Uses the Maven Wrapper for portability.)
 
 ### 2. Run the application
 
@@ -52,7 +53,9 @@ java -jar target/oomlet-0.0.7.jar
 SERVER_PORT=9090 java -jar target/oomlet-0.0.7.jar
 ```
 
-### 3. Explore available endpoints
+---
+
+## 📖 API Endpoints
 
 | Endpoint | Method | Purpose |
 |:---------|:-------|:--------|
@@ -65,6 +68,9 @@ SERVER_PORT=9090 java -jar target/oomlet-0.0.7.jar
 | `/api/burn-cpu?millis=1000&threads=2` | GET | Generate CPU load |
 | `/api/ulimits` | GET | View OS resource limits (parsed `ulimit`) |
 | `/api/logging/spring?level=DEBUG` | POST | Change Spring framework log level dynamically |
+| `/api/crash?code=137` | POST | Exit the process with specific code |
+| `/api/ping?host=https://example.com` | GET | Test outbound connectivity to a URL |
+| `/api/latency?delayMillis=1500` | GET | Simulate response latency for timeout testing |
 
 ---
 
@@ -72,62 +78,57 @@ SERVER_PORT=9090 java -jar target/oomlet-0.0.7.jar
 
 ### Memory Allocation
 
-**Endpoint:**  
-`GET /api/allocate-memory?bytes=N`
-
-- Attempts to allocate memory in 1MB blocks.
-- Reports `requestedBytes`, `allocatedBytes`, and `failedBytes`.
-- Example:
-  ```bash
-  curl 'http://localhost:8080/api/allocate-memory?bytes=104857600'
-  ```
+```bash
+curl 'http://localhost:8080/api/allocate-memory?bytes=104857600'
+```
 
 ### File Handle Load
 
-**Endpoint:**  
-`GET /api/open-files?count=N`
-
-- Opens `N` temporary files (read-only) and reports how many succeeded.
-- Example:
-  ```bash
-  curl 'http://localhost:8080/api/open-files?count=100'
-  ```
+```bash
+curl 'http://localhost:8080/api/open-files?count=100'
+```
 
 ### CPU Burn
 
-**Endpoint:**  
-`GET /api/burn-cpu?millis=5000&threads=4`
-
-- Consumes CPU cycles for a specified duration and number of threads.
-- Example:
-  ```bash
-  curl 'http://localhost:8080/api/burn-cpu?millis=5000&threads=4'
-  ```
-
----
-
-## 📖 API - Other Useful Endpoints
-
-### Health Check Toggle
-
 ```bash
-curl -X POST 'http://localhost:8080/api/health-toggle/disable'
-curl -X POST 'http://localhost:8080/api/health-toggle/enable'
+curl 'http://localhost:8080/api/burn-cpu?millis=5000&threads=4'
 ```
 
-Dynamically simulate health degradation and recovery.
+---
+
+## 📡 Connectivity & Delay Simulation
+
+### Outbound Ping
+
+```bash
+curl 'http://localhost:8080/api/ping?host=https://example.com'
+```
+
+### Simulate Latency
+
+```bash
+curl 'http://localhost:8080/api/latency?delayMillis=1500'
+```
 
 ---
 
-### Runtime Log Level Adjustment
+## 💥 Crash the Application
 
-**Change Spring log level at runtime:**
+Use this to simulate process failure and container exit.
+
+```bash
+curl -X POST 'http://localhost:8080/api/crash?code=137'
+```
+
+---
+
+## 🔧 Runtime Configuration
+
+### Log Level Adjustment
 
 ```bash
 curl -X POST 'http://localhost:8080/api/logging/spring?level=DEBUG'
 ```
-
-**Get current Spring log level:**
 
 ```bash
 curl 'http://localhost:8080/api/logging/spring'
@@ -149,8 +150,7 @@ docker build -t oomlet:latest .
 docker run -p 8080:8080 oomlet:latest
 ```
 
-✅ Designed to be liveness- and readiness-probe friendly.
-
+✅ Designed to be liveness- and readiness-probe friendly.  
 ✅ Docker image built for minimal size and startup speed.
 
 ---
@@ -166,44 +166,38 @@ docker run -p 8080:8080 oomlet:latest
 
 ## 🧪 Testing and Code Coverage
 
-Run unit and integration tests with coverage:
+Run unit and integration tests:
 
 ```bash
 ./mvnw clean verify
 ```
 
-View code coverage report locally:
+Open coverage report:
 
 ```bash
 open target/site/jacoco/index.html
 ```
 
-Or see it live at:
+View live coverage:
 
-➡️ https://trcjr.github.io/oomlet
+- GitHub Pages: https://trcjr.github.io/oomlet  
+- Codecov: https://codecov.io/gh/trcjr/oomlet
 
-Also published to Codecov:
-
-➡️ https://codecov.io/gh/trcjr/oomlet
-
-✅ Enforced 80%+ line coverage.
-
-✅ Build will fail if coverage threshold is not met.
-
-✅ CI/CD with GitHub Actions ensures test + coverage thresholds are met on every push.
+✅ Enforced 80%+ line coverage.  
+✅ Build fails if coverage threshold not met.  
+✅ CI/CD runs on each push via GitHub Actions.
 
 ---
 
-## 🚦 Graceful Shutdown and Signal Handling
+## 🚦 Signal Handling
 
-OOMlet listens for:
+OOMlet handles:
 
-- **SIGINT** (`Ctrl+C`)
-- **SIGTERM** (`docker stop`, `kubectl delete pod`)
-- **SIGHUP**, **SIGQUIT**, **SIGUSR1**, **SIGUSR2**
+- SIGINT (`Ctrl+C`)
+- SIGTERM (`docker stop`, `kubectl delete pod`)
+- SIGHUP, SIGQUIT, SIGUSR1, SIGUSR2
 
-✅ Critical signals trigger a graceful Spring Boot shutdown.  
-✅ Custom signals (USR1, USR2) are logged for future hooks.
+Gracefully shuts down or logs custom signals.
 
 ---
 
@@ -212,46 +206,41 @@ OOMlet listens for:
 ```plaintext
 ┌────────────────────────────┐
 │        Client / User        │
-└─────────────┬───────────────┘
+└─────────────┬──────────────┘
               │
         HTTP Requests
               │
-┌─────────────▼───────────────┐
+┌─────────────▼──────────────┐
 │      Spring Boot Server     │
-│    (Embedded Web Server)    │
-└─────────────┬───────────────┘
+└─────────────┬──────────────┘
               │
-    ┌─────────┼──────────┬───────────────┬──────────────┬─────────────┐
-    │         │           │               │              │
-┌───▼───┐ ┌────▼────┐ ┌────▼────┐ ┌────────▼──────┐ ┌─────▼─────┐
-│ /api/ │ │ /api/   │ │ /api/   │ │ /api/ulimits  │ │ /actuator/│
-│status │ │open-files││allocate │ │ /api/burn-cpu │ │health, etc│
-└───────┘ └──────────┘└─────────┘└───────────────┘ └───────────┘
+    ┌─────────┼──────────┬──────────────┬──────────────┬─────────────┐
+    │         │           │              │              │
+┌───▼───┐ ┌────▼────┐ ┌────▼────┐ ┌───────▼─────┐ ┌──────▼────┐
+│status│ │open-files││allocate │ │ /ulimits    │ │actuator   │
+│      │ │          ││memory   │ │ burn-cpu    │ │ health, etc│
+└──────┘ └──────────┘└─────────┘ └─────────────┘ └───────────┘
               │
               ▼
-    ┌───────────────────────┐
-    │ SignalHandlerService  │
-    └─────────┬──────────────┘
+    ┌─────────────────────────────┐
+    │ SignalHandlerService        │
+    └─────────┬───────────────────┘
               ▼
-       Graceful Shutdown
+        Graceful Shutdown
 ```
 
 ---
 
 ## 📄 License
 
-Released under the [MIT License](./LICENSE)  
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.
+MIT — see [LICENSE](./LICENSE)
 
 ---
 
 ## ✍️ Contributing
 
-We welcome issues, suggestions, and pull requests!
-
-Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
-
-New here? Start with an issue labeled "good first issue".
+We welcome PRs and issues. Start with [CONTRIBUTING.md](./CONTRIBUTING.md)  
+Look for issues labeled `good first issue` to help out!
 
 ---
 

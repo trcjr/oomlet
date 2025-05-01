@@ -18,7 +18,6 @@ jobs:
       - name: woke
         uses: get-woke/woke-action@v0
         with:
-          # Cause the check to fail on any broke rules
           fail-on-error: true
 
   build-test:
@@ -43,6 +42,8 @@ jobs:
         with:
           name: test-results
           path: target/surefire-reports/
+          if-no-files-found: warn
+          overwrite: true
 
   docker:
     name: Docker Build and Push
@@ -91,6 +92,8 @@ jobs:
         with:
           name: helm-charts
           path: helm-charts/
+          if-no-files-found: warn
+          overwrite: true
 
   coverage:
     name: Coverage Reporting and Artifacts
@@ -128,11 +131,7 @@ jobs:
           mkdir -p staging/source
           rsync -av --exclude=target --exclude=.git --exclude=staging ./ staging/source/
           cd staging/source
-
-          # Create ZIP archive
           zip -r ../../source.zip .
-
-          # Create TAR.GZ archive
           tar -czf ../../source.tar.gz .
 
       - name: Upload Source Archives
@@ -142,9 +141,13 @@ jobs:
           path: |
             source.zip
             source.tar.gz
+          if-no-files-found: warn
+          overwrite: true
 
       - name: Upload JAR
         uses: actions/upload-artifact@v4
         with:
           name: oomlet-jar
           path: target/oomlet-*.jar
+          if-no-files-found: warn
+          overwrite: true
