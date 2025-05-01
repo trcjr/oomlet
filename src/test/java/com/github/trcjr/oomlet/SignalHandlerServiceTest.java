@@ -1,78 +1,78 @@
 package com.github.trcjr.oomlet;
 
-import static org.mockito.Mockito.*;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Spy;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mockito;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@ExtendWith(MockitoExtension.class)
+import static org.mockito.Mockito.*;
+
 class SignalHandlerServiceTest {
 
-    @Spy
-    private SignalHandlerService signalHandlerService;
+    private SignalHandlerService service;
 
     @BeforeEach
     void setUp() {
-        // No special setup needed
+        service = Mockito.spy(new SignalHandlerService() {
+            @Override
+            protected void shutdownApplication() {
+                logger.info("Mock shutdown called.");
+            }
+        });
+    }
+
+    private static final Logger logger = LoggerFactory.getLogger(SignalHandlerServiceTest.class);
+
+    @Test
+    void testHandleIntSignal() {
+        service.onSignal("INT");
+        verify(service).shutdownApplication();
     }
 
     @Test
-    void testSetupSignalHandlersDoesNotThrow() {
-        signalHandlerService.setupSignalHandlers();
-        // If no exception, we assume OK — signal handlers register safely
+    void testHandleTermSignal() {
+        service.onSignal("TERM");
+        verify(service).shutdownApplication();
     }
 
     @Test
-    void testOnShutdown() {
-        signalHandlerService.onShutdown();
+    void testHandleHupSignal() {
+        service.onSignal("HUP");
+        verify(service, never()).shutdownApplication();
     }
 
     @Test
-    void testOnSignalSIGINT() {
-        doNothing().when(signalHandlerService).shutdownApplication();
-        signalHandlerService.onSignal("INT");
-        verify(signalHandlerService, times(1)).shutdownApplication();
+    void testHandleQuitSignal() {
+        service.onSignal("QUIT");
+        verify(service).shutdownApplication();
     }
 
     @Test
-    void testOnSignalSIGTERM() {
-        doNothing().when(signalHandlerService).shutdownApplication();
-        signalHandlerService.onSignal("TERM");
-        verify(signalHandlerService, times(1)).shutdownApplication();
+    void testHandleUsr1Signal() {
+        service.onSignal("USR1");
+        verify(service, never()).shutdownApplication();
     }
 
     @Test
-    void testOnSignalSIGHUP() {
-        signalHandlerService.onSignal("HUP");
-        // No shutdown expected, only logging
-        verify(signalHandlerService, never()).shutdownApplication();
+    void testHandleUsr2Signal() {
+        service.onSignal("USR2");
+        verify(service, never()).shutdownApplication();
     }
 
     @Test
-    void testOnSignalSIGQUIT() {
-        doNothing().when(signalHandlerService).shutdownApplication();
-        signalHandlerService.onSignal("QUIT");
-        verify(signalHandlerService, times(1)).shutdownApplication();
+    void testHandleUnknownSignal() {
+        service.onSignal("UNKNOWN");
+        verify(service, never()).shutdownApplication();
     }
 
     @Test
-    void testOnSignalSIGUSR1() {
-        signalHandlerService.onSignal("USR1");
-        verify(signalHandlerService, never()).shutdownApplication();
+    void testOnShutdownLogsMessage() {
+        service.onShutdown(); // No assertion needed, just ensures no exception
     }
 
     @Test
-    void testOnSignalSIGUSR2() {
-        signalHandlerService.onSignal("USR2");
-        verify(signalHandlerService, never()).shutdownApplication();
-    }
-
-    @Test
-    void testOnUnknownSignal() {
-        signalHandlerService.onSignal("FAKESIGNAL");
-        verify(signalHandlerService, never()).shutdownApplication();
+    void testSetupSignalHandlersRunsWithoutException() {
+        service.setupSignalHandlers(); // Just ensuring it executes; platform-dependent behavior not asserted
     }
 }

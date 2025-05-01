@@ -7,8 +7,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.concurrent.CompletableFuture;
-
 @RestController
 public class StatusController {
 
@@ -18,9 +16,9 @@ public class StatusController {
     public ResponseEntity<String> setStatus(
             @RequestParam(defaultValue = "200") int responseCode,
             @RequestParam(defaultValue = "0") long millis) {
-        
+
         logger.info("Received request: responseCode={} millis={}", responseCode, millis);
-    
+
         try {
             if (millis > 0) {
                 Thread.sleep(millis);
@@ -30,7 +28,7 @@ public class StatusController {
             logger.error("Interrupted while sleeping", e);
             return ResponseEntity.status(500).body("Interrupted while sleeping.");
         }
-    
+
         logger.info("Returning HTTP status {}", responseCode);
         return ResponseEntity.status(responseCode)
                 .body("Returning HTTP status: " + responseCode + " after " + millis + " ms");
