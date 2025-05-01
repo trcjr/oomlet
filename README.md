@@ -1,7 +1,7 @@
 # 🥚 OOMlet
 
 ![Build Status](https://github.com/trcjr/oomlet/actions/workflows/000-mono-workflow.yml/badge.svg)
-[![Coverage Status](https://coveralls.io/repos/github/trcjr/oomlet/badge.svg?branch=main)](https://coveralls.io/github/trcjr/oomlet?branch=main)
+[![Coverage](https://codecov.io/gh/trcjr/oomlet/branch/main/graph/badge.svg)](https://codecov.io/gh/trcjr/oomlet)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 ![Crashing With Style](https://img.shields.io/badge/crashing-with--style-yellow)
 
@@ -167,11 +167,19 @@ Run unit and integration tests with coverage:
 ./mvnw clean verify
 ```
 
-View code coverage report:
+View code coverage report locally:
 
 ```bash
 open target/site/jacoco/index.html
 ```
+
+Or see it live at:
+
+➡️ https://trcjr.github.io/oomlet
+
+Also published to Codecov:
+
+➡️ https://codecov.io/gh/trcjr/oomlet
 
 ✅ Enforced 80%+ line coverage.
 
