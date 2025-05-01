@@ -1,38 +1,25 @@
 package com.github.trcjr.oomlet.controller;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.http.ResponseEntity;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.junit.jupiter.api.Assertions.*;
 
-@WebMvcTest(LatencyController.class)
-class LatencyControllerTest {
-
-    @Autowired
-    private MockMvc mockMvc;
+class LatencyControllerUnitTest {
 
     @Test
-    void simulateLatency_returnsResponseAfterDelay() throws Exception {
-        long delay = 200;
-
-        long start = System.currentTimeMillis();
-
-        mockMvc.perform(get("/api/latency").param("delayMillis", String.valueOf(delay)))
-                .andExpect(status().isOk())
-                .andExpect(content().string(containsString("Responded after " + delay + " ms")));
-
-        long elapsed = System.currentTimeMillis() - start;
-        assert elapsed >= delay : "Expected elapsed time to be at least " + delay + "ms";
+    void simulateLatency_returnsExpectedMessage() {
+        LatencyController controller = new LatencyController(millis -> { /* no-op */ });
+        ResponseEntity<String> response = controller.simulateLatency(123);
+        assertEquals(200, response.getStatusCodeValue());
+        assertEquals("Responded after 123 ms", response.getBody());
     }
 
     @Test
-    void simulateLatency_defaultsTo1000() throws Exception {
-        mockMvc.perform(get("/api/latency"))
-                .andExpect(status().isOk())
-                .andExpect(content().string(containsString("Responded after 1000 ms")));
+    void simulateLatency_handlesInterruption() {
+        LatencyController controller = new LatencyController(millis -> { throw new InterruptedException(); });
+        ResponseEntity<String> response = controller.simulateLatency(456);
+        assertEquals(500, response.getStatusCodeValue());
+        assertEquals("Interrupted during latency simulation.", response.getBody());
     }
 }

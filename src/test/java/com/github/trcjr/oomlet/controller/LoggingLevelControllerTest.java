@@ -1,14 +1,10 @@
 package com.github.trcjr.oomlet.controller;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.http.MediaType;
-import org.springframework.web.context.WebApplicationContext;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -20,14 +16,6 @@ public class LoggingLevelControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
-
-    @Autowired
-    private WebApplicationContext context;
-
-    @BeforeEach
-    public void setup() {
-        this.mockMvc = MockMvcBuilders.webAppContextSetup(this.context).build();
-    }
 
     @Test
     void testGetSpringLoggingLevel() throws Exception {
