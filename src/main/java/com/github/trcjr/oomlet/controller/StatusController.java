@@ -1,4 +1,4 @@
-package com.github.trcjr.oomlet;
+package com.github.trcjr.oomlet.controller;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,6 +32,7 @@ public class StatusController {
         }
     
         logger.info("Returning HTTP status {}", responseCode);
-        return ResponseEntity.status(responseCode).body("Returned status code: " + responseCode);
+        return ResponseEntity.status(responseCode)
+                .body("Returning HTTP status: " + responseCode + " after " + millis + " ms");
     }
 }
