@@ -1,6 +1,6 @@
 # 🥚 OOMlet
 
-![Build Status](https://github.com/trcjr/oomlet/actions/workflows/build.yml/badge.svg)
+![Build Status](https://github.com/trcjr/oomlet/actions/workflows/000-mono-workflow.yml/badge.svg)
 [![Coverage Status](https://coveralls.io/repos/github/trcjr/oomlet/badge.svg?branch=main)](https://coveralls.io/github/trcjr/oomlet?branch=main)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 ![Crashing With Style](https://img.shields.io/badge/crashing-with--style-yellow)
