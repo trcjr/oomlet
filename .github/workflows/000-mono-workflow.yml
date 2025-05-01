@@ -123,10 +123,17 @@ jobs:
           publish_dir: ./target/site/jacoco
           publish_branch: gh-pages
 
-      - name: Package Sources
+      - name: Prepare Source Package
         run: |
-          zip -r source.zip .
-          tar czvf source.tar.gz .
+          mkdir -p staging/source
+          rsync -av --exclude=target --exclude=.git --exclude=staging ./ staging/source/
+          cd staging/source
+
+          # Create ZIP archive
+          zip -r ../../source.zip .
+
+          # Create TAR.GZ archive
+          tar -czf ../../source.tar.gz .
 
       - name: Upload Source Archives
         uses: actions/upload-artifact@v4
