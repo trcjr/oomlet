@@ -9,23 +9,20 @@ import reactor.core.publisher.Mono;
 @RequestMapping("/api/ping")
 public class PingController {
 
-    private final WebClient webClient = WebClient.builder().build();
+    private final WebClient webClient;
+
+    public PingController(WebClient.Builder builder) {
+        this.webClient = builder.build();
+    }
 
     @GetMapping
     public Mono<ResponseEntity<String>> ping(@RequestParam String host) {
         return webClient
-            .get()
-            .uri(host)
-            .retrieve()
-            .toBodilessEntity()
-            .map(response -> ResponseEntity
-                .status(response.getStatusCode())
-                .body("Pinged " + host + " - status: " + response.getStatusCodeValue())
-            )
-            .onErrorResume(e ->
-                Mono.just(ResponseEntity
-                    .status(500)
-                    .body("Failed to ping " + host + " - error: " + e.getMessage()))
-            );
+                .get()
+                .uri(host)
+                .retrieve()
+                .toBodilessEntity()
+                .map(response -> ResponseEntity.ok("Ping to " + host + " responded with status code: " + response.getStatusCode().value()))
+                .onErrorResume(ex -> Mono.just(ResponseEntity.status(500).body("Ping failed: " + ex.getMessage())));
     }
 }

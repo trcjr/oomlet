@@ -1,42 +1,68 @@
 package com.github.trcjr.oomlet.controller;
 
-import org.junit.jupiter.api.Test;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import okhttp3.mockwebserver.MockResponse;
+import okhttp3.mockwebserver.MockWebServer;
+import org.junit.jupiter.api.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.hamcrest.Matchers.containsString;
 
+@WebFluxTest(PingController.class)
+@Import({PingController.class, PingControllerTest.TestConfig.class})
 class PingControllerTest {
 
-    @Test
-    void ping_returnsSuccessResponse() {
-        PingController controller = new PingController() {
-            @Override
-            public Mono<ResponseEntity<String>> ping(String host) {
-                return Mono.just(ResponseEntity.ok("Pinged " + host + " - status: 200"));
-            }
-        };
+    @Autowired
+    private WebTestClient webTestClient;
 
-        ResponseEntity<String> result = controller.ping("https://example.com").block();
-        assertNotNull(result);
-        assertEquals(HttpStatus.OK, result.getStatusCode());
-        assertEquals("Pinged https://example.com - status: 200", result.getBody());
+    private static MockWebServer mockWebServer;
+
+    @BeforeAll
+    static void setUp() throws Exception {
+        mockWebServer = new MockWebServer();
+        mockWebServer.start();
+    }
+
+    @AfterAll
+    static void tearDown() throws Exception {
+        mockWebServer.shutdown();
+    }
+
+    @TestConfiguration
+    static class TestConfig {
+        @Bean
+        public WebClient.Builder webClientBuilder() {
+            return WebClient.builder().baseUrl(mockWebServer.url("/").toString());
+        }
     }
 
     @Test
-    void ping_handlesErrorGracefully() {
-        PingController controller = new PingController() {
-            @Override
-            public Mono<ResponseEntity<String>> ping(String host) {
-                return Mono.just(ResponseEntity.status(500).body("Failed to ping " + host + " - error: boom"));
-            }
-        };
+    void ping_validHost_returnsStatus() {
+        mockWebServer.enqueue(new MockResponse().setResponseCode(200));
 
-        ResponseEntity<String> result = controller.ping("bad://host").block();
-        assertNotNull(result);
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, result.getStatusCode());
-        assertTrue(result.getBody().contains("Failed to ping"));
+        webTestClient.get()
+                .uri(uriBuilder -> uriBuilder
+                        .path("/api/ping")
+                        .queryParam("host", "/test")
+                        .build())
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody(String.class)
+                .value(containsString("Ping to /test responded with status code: 200"));
+    }
+
+    @Test
+    void ping_invalidHost_returnsError() {
+        webTestClient.get()
+                .uri("/api/ping?host=http://localhost:9999")
+                .exchange()
+                .expectStatus().is5xxServerError()
+                .expectBody(String.class)
+                .value(containsString("Ping failed"));
     }
 }
