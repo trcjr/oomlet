@@ -5,8 +5,8 @@ public class CpuBurnResponse {
     private int requestedThreads;
     private String status;
 
-<span class="nc" id="L8">    public CpuBurnResponse() {</span>
-<span class="nc" id="L9">    }</span>
+<span class="fc" id="L8">    public CpuBurnResponse() {</span>
+<span class="fc" id="L9">    }</span>
 
 <span class="fc" id="L11">    public CpuBurnResponse(long requestedMillis, int requestedThreads, String status) {</span>
 <span class="fc" id="L12">        this.requestedMillis = requestedMillis;</span>
@@ -14,28 +14,32 @@ public class CpuBurnResponse {
 <span class="fc" id="L14">        this.status = status;</span>
 <span class="fc" id="L15">    }</span>
 
+<span class="fc" id="L17">    public CpuBurnResponse(long l, int i, long m, int j) {</span>
+        //TODO Auto-generated constructor stub
+<span class="fc" id="L19">    }</span>
+
     public long getRequestedMillis() {
-<span class="fc" id="L18">        return requestedMillis;</span>
+<span class="fc" id="L22">        return requestedMillis;</span>
     }
 
     public void setRequestedMillis(long requestedMillis) {
-<span class="nc" id="L22">        this.requestedMillis = requestedMillis;</span>
-<span class="nc" id="L23">    }</span>
+<span class="fc" id="L26">        this.requestedMillis = requestedMillis;</span>
+<span class="fc" id="L27">    }</span>
 
     public int getRequestedThreads() {
-<span class="fc" id="L26">        return requestedThreads;</span>
+<span class="fc" id="L30">        return requestedThreads;</span>
     }
 
     public void setRequestedThreads(int requestedThreads) {
-<span class="nc" id="L30">        this.requestedThreads = requestedThreads;</span>
-<span class="nc" id="L31">    }</span>
+<span class="fc" id="L34">        this.requestedThreads = requestedThreads;</span>
+<span class="fc" id="L35">    }</span>
 
     public String getStatus() {
-<span class="fc" id="L34">        return status;</span>
+<span class="fc" id="L38">        return status;</span>
     }
 
     public void setStatus(String status) {
-<span class="nc" id="L38">        this.status = status;</span>
-<span class="nc" id="L39">    }</span>
+<span class="fc" id="L42">        this.status = status;</span>
+<span class="fc" id="L43">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

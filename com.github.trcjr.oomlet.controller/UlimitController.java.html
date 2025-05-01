@@ -19,48 +19,54 @@ public class UlimitController {
 
 <span class="fc" id="L20">    private static final Logger logger = LoggerFactory.getLogger(UlimitController.class);</span>
 
-    private final Supplier&lt;ProcessBuilder&gt; processBuilderSupplier;
+    private final Supplier&lt;Process&gt; processSupplier;
 
     public UlimitController() {
-<span class="fc" id="L25">        this(() -&gt; new ProcessBuilder(&quot;bash&quot;, &quot;-c&quot;, &quot;ulimit -a&quot;));</span>
-<span class="fc" id="L26">    }</span>
+<span class="fc" id="L25">        this(() -&gt; {</span>
+            try {
+<span class="nc" id="L27">                return new ProcessBuilder(&quot;bash&quot;, &quot;-c&quot;, &quot;ulimit -a&quot;)</span>
+<span class="nc" id="L28">                        .redirectErrorStream(true)</span>
+<span class="nc" id="L29">                        .start();</span>
+<span class="nc" id="L30">            } catch (Exception e) {</span>
+<span class="nc" id="L31">                throw new RuntimeException(&quot;Failed to start process&quot;, e);</span>
+            }
+        });
+<span class="fc" id="L34">    }</span>
 
-<span class="fc" id="L28">    UlimitController(Supplier&lt;ProcessBuilder&gt; processBuilderSupplier) {</span>
-<span class="fc" id="L29">        this.processBuilderSupplier = processBuilderSupplier;</span>
-<span class="fc" id="L30">    }</span>
+<span class="fc" id="L36">    UlimitController(Supplier&lt;Process&gt; processSupplier) {</span>
+<span class="fc" id="L37">        this.processSupplier = processSupplier;</span>
+<span class="fc" id="L38">    }</span>
 
     @GetMapping(&quot;/ulimits&quot;)
     public ResponseEntity&lt;Map&lt;String, String&gt;&gt; getUlimits() {
-<span class="fc" id="L34">        Map&lt;String, String&gt; limits = new LinkedHashMap&lt;&gt;();</span>
-
+<span class="fc" id="L42">        Map&lt;String, String&gt; limits = new LinkedHashMap&lt;&gt;();</span>
         try {
-<span class="fc" id="L37">            ProcessBuilder builder = processBuilderSupplier.get();</span>
-<span class="fc" id="L38">            builder.redirectErrorStream(true);</span>
-<span class="fc" id="L39">            Process process = builder.start();</span>
+<span class="fc" id="L44">            Process process = processSupplier.get();</span>
 
-<span class="fc" id="L41">            try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {</span>
+<span class="fc" id="L46">            try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {</span>
                 String line;
-<span class="fc bfc" id="L43" title="All 2 branches covered.">                while ((line = reader.readLine()) != null) {</span>
-<span class="fc" id="L44">                    line = line.trim();</span>
-<span class="pc bpc" id="L45" title="1 of 2 branches missed.">                    if (!line.isEmpty()) {</span>
-<span class="fc" id="L46">                        String[] parts = line.split(&quot;\\s+\\(.*?\\)\\s+&quot;);</span>
-<span class="pc bpc" id="L47" title="1 of 2 branches missed.">                        if (parts.length == 2) {</span>
-<span class="fc" id="L48">                            limits.put(parts[0].trim().replaceAll(&quot;\\s+&quot;, &quot;_&quot;), parts[1].trim());</span>
+<span class="fc bfc" id="L48" title="All 2 branches covered.">                while ((line = reader.readLine()) != null) {</span>
+<span class="fc" id="L49">                    line = line.trim();</span>
+<span class="pc bpc" id="L50" title="1 of 2 branches missed.">                    if (!line.isEmpty()) {</span>
+<span class="fc" id="L51">                        String[] parts = line.split(&quot;\\s+\\(.*?\\)\\s+&quot;);</span>
+<span class="pc bpc" id="L52" title="1 of 2 branches missed.">                        if (parts.length == 2) {</span>
+<span class="fc" id="L53">                            limits.put(parts[0].trim().replaceAll(&quot;\\s+&quot;, &quot;_&quot;), parts[1].trim());</span>
                         }
-<span class="fc" id="L50">                    }</span>
+<span class="fc" id="L55">                    }</span>
                 }
             }
-<span class="fc" id="L53">            int exitCode = process.waitFor();</span>
-<span class="pc bpc" id="L54" title="1 of 2 branches missed.">            if (exitCode != 0) {</span>
-<span class="nc" id="L55">                logger.warn(&quot;ulimit command exited with non-zero code: {}&quot;, exitCode);</span>
-<span class="nc" id="L56">                return ResponseEntity.status(500).body(Map.of(&quot;error&quot;, &quot;Failed to fetch ulimits.&quot;));</span>
-            }
-<span class="nc" id="L58">        } catch (Exception e) {</span>
-<span class="nc" id="L59">            logger.error(&quot;Failed to execute ulimit command&quot;, e);</span>
-<span class="nc" id="L60">            return ResponseEntity.status(500).body(Map.of(&quot;error&quot;, &quot;Exception occurred: &quot; + e.getMessage()));</span>
-<span class="fc" id="L61">        }</span>
 
-<span class="fc" id="L63">        return ResponseEntity.ok(limits);</span>
+<span class="fc" id="L59">            int exitCode = process.waitFor();</span>
+<span class="fc bfc" id="L60" title="All 2 branches covered.">            if (exitCode != 0) {</span>
+<span class="fc" id="L61">                logger.warn(&quot;ulimit command exited with non-zero code: {}&quot;, exitCode);</span>
+<span class="fc" id="L62">                return ResponseEntity.status(500).body(Map.of(&quot;error&quot;, &quot;Failed to fetch ulimits.&quot;));</span>
+            }
+<span class="fc" id="L64">        } catch (Exception e) {</span>
+<span class="fc" id="L65">            logger.error(&quot;Failed to execute ulimit command&quot;, e);</span>
+<span class="fc" id="L66">            return ResponseEntity.status(500).body(Map.of(&quot;error&quot;, &quot;Exception occurred: &quot; + e.getMessage()));</span>
+<span class="fc" id="L67">        }</span>
+
+<span class="fc" id="L69">        return ResponseEntity.ok(limits);</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
