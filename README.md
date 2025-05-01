@@ -27,6 +27,11 @@
 
 ## 🛠 Quick Start
 
+## 📋 Prerequisites
+
+- Java 17+ (Temurin recommended)
+- Maven 3.8+ (no need to install if using the Maven Wrapper)
+
 ### 1. Build the application
 
 ```bash
@@ -135,13 +140,13 @@ curl 'http://localhost:8080/api/logging/spring'
 ### Build Docker Image
 
 ```bash
-docker build -t oomlet:0.0.7 .
+docker build -t oomlet:latest .
 ```
 
 ### Run Locally
 
 ```bash
-docker run -p 8080:8080 oomlet:0.0.7
+docker run -p 8080:8080 oomlet:latest
 ```
 
 ✅ Designed to be liveness- and readiness-probe friendly.
@@ -184,6 +189,8 @@ Also published to Codecov:
 ✅ Enforced 80%+ line coverage.
 
 ✅ Build will fail if coverage threshold is not met.
+
+✅ CI/CD with GitHub Actions ensures test + coverage thresholds are met on every push.
 
 ---
 
@@ -233,7 +240,8 @@ OOMlet listens for:
 
 ## 📄 License
 
-Released under the [MIT License](LICENSE).
+Released under the [MIT License](./LICENSE)  
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.
 
 ---
 
@@ -242,6 +250,8 @@ Released under the [MIT License](LICENSE).
 We welcome issues, suggestions, and pull requests!
 
 Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+New here? Start with an issue labeled "good first issue".
 
 ---
 
@@ -253,5 +263,3 @@ Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
    \___/
   OOMlet: Cracking limits, cooking crashes 🍳
 ```
-
----
