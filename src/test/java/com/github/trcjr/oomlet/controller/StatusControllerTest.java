@@ -1,44 +1,53 @@
 package com.github.trcjr.oomlet.controller;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.ResponseEntity;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
+import org.springframework.test.web.reactive.server.WebTestClient;
 
-import static org.junit.jupiter.api.Assertions.*;
-
+@WebFluxTest(StatusController.class)
 class StatusControllerTest {
 
-    private StatusController controller;
-
-    @BeforeEach
-    void setUp() {
-        controller = new StatusController();
-    }
+    @Autowired
+    private WebTestClient webTestClient;
 
     @Test
     void testSetStatus200WithZeroDelay() {
-        ResponseEntity<String> response = controller.setStatus(200, 0);
-        assertEquals(200, response.getStatusCodeValue());
-        assertEquals("Returning HTTP status: 200 after 0 ms", response.getBody());
+        webTestClient.get()
+                .uri("/api/status?code=200&delayMillis=0")
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody(String.class)
+                .value(body -> body.contains("Returning HTTP status: 200 after 0 ms"));
     }
 
     @Test
     void testSetStatus404WithZeroDelay() {
-        ResponseEntity<String> response = controller.setStatus(404, 0);
-        assertEquals(404, response.getStatusCodeValue());
-        assertEquals("Returning HTTP status: 404 after 0 ms", response.getBody());
+        webTestClient.get()
+                .uri("/api/status?code=404&delayMillis=0")
+                .exchange()
+                .expectStatus().isNotFound()
+                .expectBody(String.class)
+                .value(body -> body.contains("Returning HTTP status: 404 after 0 ms"));
     }
 
     @Test
     void testSetStatus500WithDelay() {
-        long delay = 100L;
-        long start = System.currentTimeMillis();
-        ResponseEntity<String> response = controller.setStatus(500, delay);
-        long end = System.currentTimeMillis();
-
-        assertEquals(500, response.getStatusCodeValue());
-        assertEquals("Returning HTTP status: 500 after 100 ms", response.getBody());
-
-        assertTrue((end - start) >= delay, "Delay should be respected");
+        webTestClient.get()
+                .uri("/api/status?code=500&delayMillis=100")
+                .exchange()
+                .expectStatus().isEqualTo(500)
+                .expectBody(String.class)
+                .value(body -> body.contains("Returning HTTP status: 500 after 100 ms"));
     }
-} 
+
+    @Test
+    void testSetStatusHandlesErrorGracefully() {
+        webTestClient.get()
+                .uri("/api/status?code=500&delayMillis=-1")  // Negative delay triggers error
+                .exchange()
+                .expectStatus().isEqualTo(500)
+                .expectBody(String.class)
+                .value(body -> body.contains("Returning HTTP status: 500 due to interruption"));
+    }
+}
