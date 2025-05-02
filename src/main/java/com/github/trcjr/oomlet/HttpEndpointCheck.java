@@ -1,7 +1,13 @@
 package com.github.trcjr.oomlet;
 
-import java.util.Map;
+import org.springframework.http.HttpMethod;
 
+import java.util.Map;
+import java.util.Objects;
+
+/**
+ * Represents an HTTP request to be used in endpoint health checks.
+ */
 public class HttpEndpointCheck {
     private String uri;
     private String method;
@@ -48,5 +54,31 @@ public class HttpEndpointCheck {
 
     public void setPayload(String payload) {
         this.payload = payload;
+    }
+
+    @Override
+    public String toString() {
+        return "HttpEndpointCheck{" +
+                "uri='" + uri + '\'' +
+                ", method='" + method + '\'' +
+                ", headers=" + headers +
+                ", payload='" + payload + '\'' +
+                '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof HttpEndpointCheck)) return false;
+        HttpEndpointCheck that = (HttpEndpointCheck) o;
+        return Objects.equals(uri, that.uri) &&
+                Objects.equals(method, that.method) &&
+                Objects.equals(headers, that.headers) &&
+                Objects.equals(payload, that.payload);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(uri, method, headers, payload);
     }
 }

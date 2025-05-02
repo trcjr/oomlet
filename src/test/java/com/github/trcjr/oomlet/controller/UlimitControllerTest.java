@@ -1,114 +1,137 @@
 package com.github.trcjr.oomlet.controller;
 
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.web.reactive.server.WebTestClient;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.web.servlet.MockMvc;
 
-import java.io.*;
-import java.util.function.Supplier;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 
-import static org.mockito.Mockito.*;
+import static org.hamcrest.Matchers.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebFluxTest(UlimitController.class)
+@WebMvcTest(controllers = UlimitController.class)
+@Import(UlimitControllerTest.MockConfig.class)
 class UlimitControllerTest {
 
-    @MockBean
-    Supplier<Process> mockProcessSupplier;
+    @Autowired
+    private MockMvc mockMvc;
 
-    @Test
-    void testGetUlimitsReturnsSuccess() throws Exception {
-        String ulimitOutput = "core file size          (blocks, -c) 0\n" +
-                "data seg size           (kbytes, -d) unlimited\n";
+    private static final String VALID_ULIMIT_OUTPUT =
+        "core file size          (blocks, -c) 0\n" +
+        "data seg size           (kbytes, -d) unlimited\n" +
+        "file size               (blocks, -f) unlimited\n" +
+        "max locked memory       (kbytes, -l) unlimited\n" +
+        "max memory size         (kbytes, -m) unlimited\n" +
+        "open files              (-n) 10240\n" +
+        "pipe size               (512 bytes, -p) 1\n" +
+        "stack size              (kbytes, -s) 8176\n" +
+        "cpu time                (seconds, -t) unlimited\n" +
+        "max user processes      (-u) 1333\n" +
+        "virtual memory          (kbytes, -v) unlimited\n";
 
-        Process mockProcess = mock(Process.class);
-        when(mockProcess.getInputStream()).thenReturn(new ByteArrayInputStream(ulimitOutput.getBytes()));
-        when(mockProcess.waitFor()).thenReturn(0);
-        when(mockProcessSupplier.get()).thenReturn(mockProcess);
+    private static String injectedOutput = VALID_ULIMIT_OUTPUT;
 
-        UlimitController controller = new UlimitController(mockProcessSupplier);
-        WebTestClient client = WebTestClient.bindToController(controller).build();
-
-        client.get().uri("/api/ulimits")
-                .exchange()
-                .expectStatus().isOk()
-                .expectBody()
-                .jsonPath("$.core_file_size").isEqualTo("0")
-                .jsonPath("$.data_seg_size").isEqualTo("unlimited");
+    @Configuration
+    static class MockConfig {
+        @Bean
+        public UlimitController ulimitController() {
+            return new UlimitController(() -> {
+                if ("__throw__".equals(injectedOutput)) {
+                    throw new RuntimeException("boom");
+                }
+                return new MockProcess(injectedOutput);
+            });
+        }
     }
 
-    @Test
-    void testGetUlimitsReturnsFailureOnBadExitCode() throws Exception {
-        Process mockProcess = mock(Process.class);
-        when(mockProcess.getInputStream()).thenReturn(InputStream.nullInputStream());
-        when(mockProcess.waitFor()).thenReturn(1);
-        when(mockProcessSupplier.get()).thenReturn(mockProcess);
+    static class MockProcess extends Process {
+        private final InputStream stdout;
 
-        UlimitController controller = new UlimitController(mockProcessSupplier);
-        WebTestClient client = WebTestClient.bindToController(controller).build();
+        MockProcess(String output) {
+            this.stdout = new ByteArrayInputStream(output.getBytes(StandardCharsets.UTF_8));
+        }
 
-        client.get().uri("/api/ulimits")
-                .exchange()
-                .expectStatus().is5xxServerError()
-                .expectBody()
-                .jsonPath("$.error").isEqualTo("Failed to fetch ulimits.");
+        @Override public InputStream getInputStream() { return stdout; }
+        @Override public InputStream getErrorStream() { return InputStream.nullInputStream(); }
+        @Override public OutputStream getOutputStream() { throw new UnsupportedOperationException(); }
+        @Override public int waitFor() { return 0; }
+        @Override public int exitValue() { return 0; }
+        @Override public void destroy() {}
     }
 
-    @Test
-    void testGetUlimitsSkipsEmptyLinesAndInvalidParts() throws Exception {
-        String ulimitOutput = "\ninvalid_line_without_split\nstack size              (kbytes, -s) 8192\n";
-
-        Process mockProcess = mock(Process.class);
-        when(mockProcess.getInputStream()).thenReturn(new ByteArrayInputStream(ulimitOutput.getBytes()));
-        when(mockProcess.waitFor()).thenReturn(0);
-        when(mockProcessSupplier.get()).thenReturn(mockProcess);
-
-        UlimitController controller = new UlimitController(mockProcessSupplier);
-        WebTestClient client = WebTestClient.bindToController(controller).build();
-
-        client.get().uri("/api/ulimits")
-                .exchange()
-                .expectStatus().isOk()
-                .expectBody()
-                .jsonPath("$.stack_size").isEqualTo("8192");
+    @Nested
+    @DisplayName("Normal Behavior")
+    class NormalBehavior {
+        @Test
+        void getLimits_shouldReturnValidJsonWithExpectedFields() throws Exception {
+            injectedOutput = VALID_ULIMIT_OUTPUT;
+            mockMvc.perform(get("/api/ulimits"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", aMapWithSize(11)))
+                .andExpect(jsonPath("$.core_file_size", is("0")))
+                .andExpect(jsonPath("$.open_files", is("10240")))
+                .andExpect(jsonPath("$.max_user_processes", is("1333")));
+        }
     }
 
-    @Test
-    void testGetUlimitsReturnsFailureOnException() {
-        when(mockProcessSupplier.get()).thenThrow(new RuntimeException("Simulated failure"));
+    @Nested
+    @DisplayName("Error Handling")
+    class ErrorHandling {
 
-        UlimitController controller = new UlimitController(mockProcessSupplier);
-        WebTestClient client = WebTestClient.bindToController(controller).build();
+        @Test
+        void getLimits_shouldReturn500_onInvalidOutput() throws Exception {
+            injectedOutput = "garbage output that makes no sense";
 
-        client.get().uri("/api/ulimits")
-                .exchange()
-                .expectStatus().is5xxServerError()
-                .expectBody()
-                .jsonPath("$.error").value(msg -> msg.toString().contains("Simulated failure"));
+            mockMvc.perform(get("/api/ulimits"))
+                .andExpect(status().isInternalServerError());
+
+            injectedOutput = VALID_ULIMIT_OUTPUT;
+        }
+
+        @Test
+        void getLimits_shouldReturn500_onProcessThrowsException() throws Exception {
+            injectedOutput = "__throw__";
+
+            mockMvc.perform(get("/api/ulimits"))
+                .andExpect(status().isInternalServerError());
+
+            injectedOutput = VALID_ULIMIT_OUTPUT;
+        }
     }
 
-    @Test
-    void testDefaultConstructorExecutionPath() {
-        UlimitController controller = new UlimitController();
-        WebTestClient client = WebTestClient.bindToController(controller).build();
+    @Nested
+    @DisplayName("Edge Cases")
+    class EdgeCases {
 
-        client.get().uri("/api/ulimits")
-                .exchange()
-                .expectStatus().is2xxSuccessful();
-    }
+        @Test
+        void getLimits_shouldReturnEmptyJsonIfNothingParsed() throws Exception {
+            injectedOutput = "";
 
-    @Test
-    void testDefaultConstructorThrowsOnProcessStartFailure() {
-        UlimitController controller = new UlimitController(() -> {
-            throw new RuntimeException("Process start failure");
-        });
+            mockMvc.perform(get("/api/ulimits"))
+                .andExpect(status().isInternalServerError());
 
-        WebTestClient client = WebTestClient.bindToController(controller).build();
+            injectedOutput = VALID_ULIMIT_OUTPUT;
+        }
 
-        client.get().uri("/api/ulimits")
-                .exchange()
-                .expectStatus().is5xxServerError()
-                .expectBody()
-                .jsonPath("$.error").value(msg -> msg.toString().contains("Process start failure"));
+        @Test
+        void getLimits_shouldTrimAndNormalizeKeys() throws Exception {
+            injectedOutput = "   open files   (-n)   123   \n";
+
+            mockMvc.perform(get("/api/ulimits"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.open_files", is("123")));
+
+            injectedOutput = VALID_ULIMIT_OUTPUT;
+        }
     }
 }

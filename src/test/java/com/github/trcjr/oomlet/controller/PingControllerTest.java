@@ -1,68 +1,85 @@
 package com.github.trcjr.oomlet.controller;
 
-import okhttp3.mockwebserver.MockResponse;
-import okhttp3.mockwebserver.MockWebServer;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Import;
-import org.springframework.test.web.reactive.server.WebTestClient;
-import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.web.client.RestTemplate;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebFluxTest(PingController.class)
-@Import({PingController.class, PingControllerTest.TestConfig.class})
+@WebMvcTest(PingController.class)
 class PingControllerTest {
 
-    @Autowired
-    private WebTestClient webTestClient;
+        @Autowired
+        private MockMvc mockMvc;
 
-    private static MockWebServer mockWebServer;
+        @MockBean
+        private RestTemplate restTemplate;
 
-    @BeforeAll
-    static void setUp() throws Exception {
-        mockWebServer = new MockWebServer();
-        mockWebServer.start();
-    }
+        @Nested
+        @DisplayName("Normal Behavior")
+        class NormalBehavior {
+                @Test
+                void ping_validHost_returnsStatus() throws Exception {
+                        when(restTemplate.exchange(eq("http://localhost/test"), eq(HttpMethod.GET), any(),
+                                        eq(Void.class)))
+                                        .thenReturn(new ResponseEntity<>(HttpStatus.OK));
 
-    @AfterAll
-    static void tearDown() throws Exception {
-        mockWebServer.shutdown();
-    }
-
-    @TestConfiguration
-    static class TestConfig {
-        @Bean
-        public WebClient.Builder webClientBuilder() {
-            return WebClient.builder().baseUrl(mockWebServer.url("/").toString());
+                        mockMvc.perform(get("/api/ping")
+                                        .param("url", "http://localhost/test")
+                                        .header("X-Test-Header", "ok"))
+                                        .andExpect(status().isOk())
+                                        .andExpect(content()
+                                                        .string(containsString("Ping successful with status: 200")));
+                }
         }
-    }
 
-    @Test
-    void ping_validHost_returnsStatus() {
-        mockWebServer.enqueue(new MockResponse().setResponseCode(200));
+        @Nested
+        @DisplayName("Error Handling")
+        class ErrorHandling {
+                @Test
+                void ping_invalidHost_returnsError() throws Exception {
+                        when(restTemplate.exchange(any(), eq(HttpMethod.GET), any(), eq(Void.class)))
+                                        .thenThrow(new RuntimeException("connection refused"));
 
-        webTestClient.get()
-                .uri(uriBuilder -> uriBuilder
-                        .path("/api/ping")
-                        .queryParam("host", "/test")
-                        .build())
-                .exchange()
-                .expectStatus().isOk()
-                .expectBody(String.class)
-                .value(containsString("Ping to /test responded with status code: 200"));
-    }
+                        mockMvc.perform(get("/api/ping")
+                                        .param("url", "http://badhost")
+                                        .header("X-Test-Header", "ok"))
+                                        .andExpect(status().isBadGateway())
+                                        .andExpect(content().string(containsString("Ping failed")));
+                }
 
-    @Test
-    void ping_invalidHost_returnsError() {
-        webTestClient.get()
-                .uri("/api/ping?host=http://localhost:9999")
-                .exchange()
-                .expectStatus().is5xxServerError()
-                .expectBody(String.class)
-                .value(containsString("Ping failed"));
-    }
+                @Test
+                void ping_missingUrlParam_returns400() throws Exception {
+                        mockMvc.perform(get("/api/ping")
+                                        .header("X-Test-Header", "ok"))
+                                        .andExpect(status().isBadRequest());
+                }
+        }
+
+        @Nested
+        @DisplayName("Edge Cases")
+        class EdgeCases {
+                @Test
+                void ping_emptyUrl_returns400() throws Exception {
+                        mockMvc.perform(get("/api/ping")
+                                        .param("url", "")
+                                        .header("X-Test-Header", "ok"))
+                                        .andExpect(status().isBadRequest())
+                                        .andExpect(content()
+                                                        .string(containsString("Missing or empty 'url' parameter")));
+                }
+        }
 }

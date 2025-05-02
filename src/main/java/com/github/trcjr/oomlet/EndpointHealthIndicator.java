@@ -1,74 +1,74 @@
 package com.github.trcjr.oomlet;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.HealthIndicator;
-import org.springframework.http.HttpMethod;
-import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
+import org.springframework.http.*;
+import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestTemplate;
 
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Supplier;
 
+@Component
 public class EndpointHealthIndicator implements HealthIndicator {
 
-    private final WebClient webClient;
+    private static final Logger logger = LoggerFactory.getLogger(EndpointHealthIndicator.class);
+    private final RestTemplate restTemplate;
     private final Supplier<List<HttpEndpointCheck>> endpointSupplier;
 
-    public EndpointHealthIndicator(WebClient webClient, Supplier<List<HttpEndpointCheck>> endpointSupplier) {
-        this.webClient = webClient;
+    public EndpointHealthIndicator(RestTemplate restTemplate, Supplier<List<HttpEndpointCheck>> endpointSupplier) {
+        this.restTemplate = restTemplate;
         this.endpointSupplier = endpointSupplier;
     }
 
     @Override
     public Health health() {
-        List<HttpEndpointCheck> endpointsToCheck = endpointSupplier.get();
-
         List<String> upEndpoints = new ArrayList<>();
         List<String> downEndpoints = new ArrayList<>();
 
-        for (HttpEndpointCheck check : endpointsToCheck) {
+        for (HttpEndpointCheck check : endpointSupplier.get()) {
             try {
-                boolean success = performCheck(check);
-                if (success) {
+                HttpMethod method;
+                try {
+                    method = HttpMethod.valueOf(check.getMethod().toUpperCase());
+                } catch (IllegalArgumentException e) {
+                    logger.warn("Unsupported HTTP method: {}", check.getMethod());
+                    downEndpoints.add(check.getUri());
+                    continue;
+                }
+                HttpHeaders headers = new HttpHeaders();
+                if (check.getHeaders() != null) {
+                    check.getHeaders().forEach(headers::set);
+                }
+
+                HttpEntity<?> entity = new HttpEntity<>(headers);
+                ResponseEntity<Void> response = restTemplate.exchange(check.getUri(), method, entity, Void.class);
+
+                if (response.getStatusCode().is2xxSuccessful()) {
                     upEndpoints.add(check.getUri());
                 } else {
                     downEndpoints.add(check.getUri());
                 }
+
             } catch (Exception e) {
+                logger.error("Health check failed for {}: {}", check.getUri(), e.getMessage());
                 downEndpoints.add(check.getUri());
             }
         }
 
-        return (downEndpoints.isEmpty() ? Health.up() : Health.down())
-                .withDetail("upEndpoints", upEndpoints)
-                .withDetail("downEndpoints", downEndpoints)
-                .build();
-    }
-
-    boolean performCheck(HttpEndpointCheck check) {
-        try {
-            WebClient.RequestHeadersSpec<?> requestSpec = webClient.method(HttpMethod.valueOf(check.getMethod().toUpperCase()))
-                    .uri(check.getUri())
-                    .headers(headers -> {
-                        if (check.getHeaders() != null) {
-                            check.getHeaders().forEach(headers::add);
-                        }
-                    });
-
-            Mono<Integer> responseMono = requestSpec
-                    .retrieve()
-                    .toBodilessEntity()
-                    .timeout(Duration.ofSeconds(3))
-                    .map(response -> response.getStatusCode().value());
-
-            Integer statusCode = responseMono.block();
-
-            return statusCode != null && statusCode >= 200 && statusCode < 300;
-        } catch (Exception e) {
-            return false;
+        if (downEndpoints.isEmpty()) {
+            return Health.up()
+                    .withDetail("upEndpoints", upEndpoints)
+                    .withDetail("downEndpoints", downEndpoints)
+                    .build();
+        } else {
+            return Health.down()
+                    .withDetail("upEndpoints", upEndpoints)
+                    .withDetail("downEndpoints", downEndpoints)
+                    .build();
         }
     }
 }

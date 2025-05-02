@@ -3,44 +3,37 @@ package com.github.trcjr.oomlet;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.actuate.health.Health;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.reactive.function.client.*;
-import reactor.core.publisher.Mono;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 class EndpointHealthIndicatorTest {
 
-    private WebClient webClient;
-    private WebClient.RequestBodyUriSpec uriSpec;
-    private WebClient.RequestHeadersSpec<?> headersSpec;
-    private WebClient.ResponseSpec responseSpec;
-
+    private RestTemplate restTemplate;
     private EndpointHealthIndicator indicator;
 
     @BeforeEach
     void setup() {
-        webClient = mock(WebClient.class);
-        uriSpec = mock(WebClient.RequestBodyUriSpec.class);
-        headersSpec = mock(WebClient.RequestHeadersSpec.class);
-        responseSpec = mock(WebClient.ResponseSpec.class);
-
-        when(webClient.method(any())).thenReturn(uriSpec);
-        when(uriSpec.uri(anyString())).thenReturn(uriSpec);
-        when(uriSpec.headers(any())).thenReturn(uriSpec);
-        when(uriSpec.retrieve()).thenReturn(responseSpec);
-        when(responseSpec.toBodilessEntity()).thenReturn(Mono.just(ResponseEntity.ok().build()));
+        restTemplate = mock(RestTemplate.class);
 
         HttpEndpointCheck check = new HttpEndpointCheck("http://test.com", "GET", Map.of("Authorization", "Bearer token"), null);
         Supplier<List<HttpEndpointCheck>> endpointSupplier = () -> List.of(check);
 
-        indicator = new EndpointHealthIndicator(webClient, endpointSupplier);
+        ResponseEntity<Void> response = ResponseEntity.ok().build();
+        when(restTemplate.exchange(eq("http://test.com"), eq(HttpMethod.GET), any(HttpEntity.class), eq(Void.class)))
+                .thenReturn(response);
+
+        indicator = new EndpointHealthIndicator(restTemplate, endpointSupplier);
     }
 
     @Test
@@ -52,11 +45,12 @@ class EndpointHealthIndicatorTest {
 
     @Test
     void health_withAllDown_shouldBeDown() {
-        when(responseSpec.toBodilessEntity()).thenThrow(new RuntimeException("fail"));
+        when(restTemplate.exchange(eq("http://fail.com"), eq(HttpMethod.GET), any(HttpEntity.class), eq(Void.class)))
+                .thenThrow(new RuntimeException("fail"));
 
         HttpEndpointCheck check = new HttpEndpointCheck("http://fail.com", "GET", null, null);
         Supplier<List<HttpEndpointCheck>> endpointSupplier = () -> List.of(check);
-        indicator = new EndpointHealthIndicator(webClient, endpointSupplier);
+        indicator = new EndpointHealthIndicator(restTemplate, endpointSupplier);
 
         Health result = indicator.health();
         assertEquals("DOWN", result.getStatus().getCode());
@@ -68,7 +62,7 @@ class EndpointHealthIndicatorTest {
     @Test
     void health_withNoEndpoints_shouldBeUpWithEmptyLists() {
         Supplier<List<HttpEndpointCheck>> emptySupplier = List::of;
-        indicator = new EndpointHealthIndicator(webClient, emptySupplier);
+        indicator = new EndpointHealthIndicator(restTemplate, emptySupplier);
 
         Health result = indicator.health();
         assertEquals("UP", result.getStatus().getCode());
@@ -80,11 +74,14 @@ class EndpointHealthIndicatorTest {
     void performCheck_shouldSetHeaders() {
         HttpEndpointCheck check = new HttpEndpointCheck("http://test.com", "GET", Map.of("X-Test", "123"), null);
         Supplier<List<HttpEndpointCheck>> supplier = () -> List.of(check);
-        indicator = new EndpointHealthIndicator(webClient, supplier);
+        indicator = new EndpointHealthIndicator(restTemplate, supplier);
 
-        // Trigger health to indirectly test header injection
         indicator.health();
 
-        verify(uriSpec).headers(any());
+        // Verify that the correct exchange method was called with headers
+        verify(restTemplate).exchange(eq("http://test.com"), eq(HttpMethod.GET), argThat(entity -> {
+            HttpHeaders headers = entity.getHeaders();
+            return "123".equals(headers.getFirst("X-Test"));
+        }), eq(Void.class));
     }
 }

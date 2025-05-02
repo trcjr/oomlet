@@ -1,6 +1,5 @@
 package com.github.trcjr.oomlet.controller;
 
-import com.github.trcjr.oomlet.controller.CpuBurnController;
 import com.github.trcjr.oomlet.dto.CpuBurnResponse;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
