@@ -1,72 +1,114 @@
 package com.github.trcjr.oomlet.controller;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.http.ResponseEntity;
+import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.web.reactive.server.WebTestClient;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.util.Map;
+import java.io.*;
 import java.util.function.Supplier;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
+@WebFluxTest(UlimitController.class)
 class UlimitControllerTest {
+
+    @MockBean
+    Supplier<Process> mockProcessSupplier;
 
     @Test
     void testGetUlimitsReturnsSuccess() throws Exception {
-        String output = "max user processes            (nproc)              12345\n"
-                      + "open files                    (nofile)             67890\n";
+        String ulimitOutput = "core file size          (blocks, -c) 0\n" +
+                "data seg size           (kbytes, -d) unlimited\n";
 
-        Supplier<Process> mockSupplier = () -> new MockProcess(output, 0);
-        UlimitController controller = new UlimitController(mockSupplier);
+        Process mockProcess = mock(Process.class);
+        when(mockProcess.getInputStream()).thenReturn(new ByteArrayInputStream(ulimitOutput.getBytes()));
+        when(mockProcess.waitFor()).thenReturn(0);
+        when(mockProcessSupplier.get()).thenReturn(mockProcess);
 
-        ResponseEntity<Map<String, String>> response = controller.getUlimits();
+        UlimitController controller = new UlimitController(mockProcessSupplier);
+        WebTestClient client = WebTestClient.bindToController(controller).build();
 
-        assertEquals(200, response.getStatusCodeValue());
-        Map<String, String> body = response.getBody();
-        assertNotNull(body);
-        assertEquals("12345", body.get("max_user_processes"));
-        assertEquals("67890", body.get("open_files"));
+        client.get().uri("/api/ulimits")
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$.core_file_size").isEqualTo("0")
+                .jsonPath("$.data_seg_size").isEqualTo("unlimited");
     }
 
     @Test
-    void testGetUlimitsReturnsFailureOnNonZeroExit() throws Exception {
-        Supplier<Process> mockSupplier = () -> new MockProcess("", 1);
-        UlimitController controller = new UlimitController(mockSupplier);
+    void testGetUlimitsReturnsFailureOnBadExitCode() throws Exception {
+        Process mockProcess = mock(Process.class);
+        when(mockProcess.getInputStream()).thenReturn(InputStream.nullInputStream());
+        when(mockProcess.waitFor()).thenReturn(1);
+        when(mockProcessSupplier.get()).thenReturn(mockProcess);
 
-        ResponseEntity<Map<String, String>> response = controller.getUlimits();
+        UlimitController controller = new UlimitController(mockProcessSupplier);
+        WebTestClient client = WebTestClient.bindToController(controller).build();
 
-        assertEquals(500, response.getStatusCodeValue());
-        assertTrue(response.getBody().get("error").contains("Failed to fetch ulimits"));
+        client.get().uri("/api/ulimits")
+                .exchange()
+                .expectStatus().is5xxServerError()
+                .expectBody()
+                .jsonPath("$.error").isEqualTo("Failed to fetch ulimits.");
+    }
+
+    @Test
+    void testGetUlimitsSkipsEmptyLinesAndInvalidParts() throws Exception {
+        String ulimitOutput = "\ninvalid_line_without_split\nstack size              (kbytes, -s) 8192\n";
+
+        Process mockProcess = mock(Process.class);
+        when(mockProcess.getInputStream()).thenReturn(new ByteArrayInputStream(ulimitOutput.getBytes()));
+        when(mockProcess.waitFor()).thenReturn(0);
+        when(mockProcessSupplier.get()).thenReturn(mockProcess);
+
+        UlimitController controller = new UlimitController(mockProcessSupplier);
+        WebTestClient client = WebTestClient.bindToController(controller).build();
+
+        client.get().uri("/api/ulimits")
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$.stack_size").isEqualTo("8192");
     }
 
     @Test
     void testGetUlimitsReturnsFailureOnException() {
-        Supplier<Process> throwingSupplier = () -> {
-            throw new RuntimeException("Simulated failure");
-        };
-        UlimitController controller = new UlimitController(throwingSupplier);
+        when(mockProcessSupplier.get()).thenThrow(new RuntimeException("Simulated failure"));
 
-        ResponseEntity<Map<String, String>> response = controller.getUlimits();
+        UlimitController controller = new UlimitController(mockProcessSupplier);
+        WebTestClient client = WebTestClient.bindToController(controller).build();
 
-        assertEquals(500, response.getStatusCodeValue());
-        assertTrue(response.getBody().get("error").contains("Exception occurred"));
+        client.get().uri("/api/ulimits")
+                .exchange()
+                .expectStatus().is5xxServerError()
+                .expectBody()
+                .jsonPath("$.error").value(msg -> msg.toString().contains("Simulated failure"));
     }
 
-    static class MockProcess extends Process {
-        private final InputStream inputStream;
-        private final int exitCode;
+    @Test
+    void testDefaultConstructorExecutionPath() {
+        UlimitController controller = new UlimitController();
+        WebTestClient client = WebTestClient.bindToController(controller).build();
 
-        MockProcess(String output, int exitCode) {
-            this.inputStream = new ByteArrayInputStream(output.getBytes());
-            this.exitCode = exitCode;
-        }
+        client.get().uri("/api/ulimits")
+                .exchange()
+                .expectStatus().is2xxSuccessful();
+    }
 
-        @Override public InputStream getInputStream() { return inputStream; }
-        @Override public InputStream getErrorStream() { return InputStream.nullInputStream(); }
-        @Override public java.io.OutputStream getOutputStream() { return java.io.OutputStream.nullOutputStream(); }
-        @Override public int waitFor() { return exitCode; }
-        @Override public int exitValue() { return exitCode; }
-        @Override public void destroy() {}
+    @Test
+    void testDefaultConstructorThrowsOnProcessStartFailure() {
+        UlimitController controller = new UlimitController(() -> {
+            throw new RuntimeException("Process start failure");
+        });
+
+        WebTestClient client = WebTestClient.bindToController(controller).build();
+
+        client.get().uri("/api/ulimits")
+                .exchange()
+                .expectStatus().is5xxServerError()
+                .expectBody()
+                .jsonPath("$.error").value(msg -> msg.toString().contains("Process start failure"));
     }
 }

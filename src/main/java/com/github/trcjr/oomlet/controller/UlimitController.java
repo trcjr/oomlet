@@ -18,22 +18,21 @@ import java.util.function.Supplier;
 public class UlimitController {
 
     private static final Logger logger = LoggerFactory.getLogger(UlimitController.class);
-
     private final Supplier<Process> processSupplier;
 
     public UlimitController() {
         this(() -> {
+            ProcessBuilder pb = new ProcessBuilder("bash", "-c", "ulimit -a");
+            pb.redirectErrorStream(true);
             try {
-                return new ProcessBuilder("bash", "-c", "ulimit -a")
-                        .redirectErrorStream(true)
-                        .start();
+                return pb.start();
             } catch (Exception e) {
-                throw new RuntimeException("Failed to start process", e);
+                throw new RuntimeException("Failed to start ulimit process", e);
             }
         });
     }
 
-    UlimitController(Supplier<Process> processSupplier) {
+    public UlimitController(Supplier<Process> processSupplier) {
         this.processSupplier = processSupplier;
     }
 
@@ -61,11 +60,12 @@ public class UlimitController {
                 logger.warn("ulimit command exited with non-zero code: {}", exitCode);
                 return ResponseEntity.status(500).body(Map.of("error", "Failed to fetch ulimits."));
             }
+
+            return ResponseEntity.ok(limits);
+
         } catch (Exception e) {
             logger.error("Failed to execute ulimit command", e);
             return ResponseEntity.status(500).body(Map.of("error", "Exception occurred: " + e.getMessage()));
         }
-
-        return ResponseEntity.ok(limits);
     }
 }
