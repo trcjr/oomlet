@@ -1,9 +1,7 @@
 # 🥚 OOMlet
 
-![Build Status](https://github.com/trcjr/oomlet/actions/workflows/000-mono-workflow.yml/badge.svg)
-[![Coverage](https://codecov.io/gh/trcjr/oomlet/branch/main/graph/badge.svg)](https://codecov.io/gh/trcjr/oomlet)
-![License](https://img.shields.io/badge/license-MIT-blue)
-![Crashing With Style](https://img.shields.io/badge/crashing-with--style-yellow)
+![Build Status](https://github.com/trcjr/oomlet/actions/workflows/000-mono-workflow.yml/badge.svg) [![Coverage](https://codecov.io/gh/trcjr/oomlet/branch/main/graph/badge.svg)](https://codecov.io/gh/trcjr/oomlet) ![Tests](https://img.shields.io/badge/tests-57%20passing-brightgreen) ![Java](https://img.shields.io/badge/Java-21-blue) ![Last Commit](https://img.shields.io/github/last-commit/trcjr/oomlet) ![License](https://img.shields.io/badge/license-MIT-blue) ![Crashing With Style](https://img.shields.io/badge/crashing-with--style-yellow)
+
 
 **OOMlet** — a lightweight, chaos-friendly QA and debugging Spring Boot application designed to help you **test**, **stress**, and **harden** your systems.
 
@@ -241,14 +239,3 @@ MIT — see [LICENSE](./LICENSE)
 
 We welcome PRs and issues. Start with [CONTRIBUTING.md](./CONTRIBUTING.md)  
 Look for issues labeled `good first issue` to help out!
-
----
-
-```plaintext
-    🥚
-    / \
-   / _ \
-  | (_) |
-   \___/
-  OOMlet: Cracking limits, cooking crashes 🍳
-```
