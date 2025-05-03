@@ -124,18 +124,14 @@ jobs:
         run: |
           echo "version=$(./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout)" >> "$GITHUB_OUTPUT"
 
-      - name: Build Docker Image
+      - name: Build and Push Multi-Arch Docker Image
         run: |
-          docker build \
-            -t ghcr.io/${{ github.repository_owner }}/oomlet:${{ steps.version.outputs.version }} \
-            -t ghcr.io/${{ github.repository_owner }}/oomlet:main \
-            -t ghcr.io/${{ github.repository_owner }}/oomlet:latest .
-
-      - name: Push Docker Image
-        run: |
-          docker push ghcr.io/${{ github.repository_owner }}/oomlet:${{ steps.version.outputs.version }}
-          docker push ghcr.io/${{ github.repository_owner }}/oomlet:main
-          docker push ghcr.io/${{ github.repository_owner }}/oomlet:latest
+          docker buildx build \
+            --platform linux/amd64,linux/arm64 \
+            --tag ghcr.io/${{ github.repository_owner }}/oomlet:${{ steps.version.outputs.version }} \
+            --tag ghcr.io/${{ github.repository_owner }}/oomlet:main \
+            --tag ghcr.io/${{ github.repository_owner }}/oomlet:latest \
+            --push .
 
   helm:
     name: Helm Package and Upload

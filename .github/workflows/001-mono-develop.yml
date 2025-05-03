@@ -120,16 +120,14 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build Docker Image
+      - name: Build and Push Multi-Arch Docker Image
         run: |
-          docker build \
+          docker buildx build \
+            --platform linux/amd64,linux/arm64 \
+            --push \
             -t ghcr.io/${{ github.repository_owner }}/oomlet:${{ env.RELEASE_VERSION }}-dev.${{ steps.vars.outputs.short_hash }} \
-            -t ghcr.io/${{ github.repository_owner }}/oomlet:develop .
-
-      - name: Push Docker Image
-        run: |
-          docker push ghcr.io/${{ github.repository_owner }}/oomlet:${{ env.RELEASE_VERSION }}-dev.${{ steps.vars.outputs.short_hash }}
-          docker push ghcr.io/${{ github.repository_owner }}/oomlet:develop
+            -t ghcr.io/${{ github.repository_owner }}/oomlet:develop \
+            .
 
   helm:
     name: Helm Package and Upload
