@@ -1,6 +1,0 @@
-apiVersion: v2
-name: oomlet
-description: A lightweight Spring Boot tool for QA and debugging.
-type: application
-version: 0.1.0
-appVersion: "1.0.0"
