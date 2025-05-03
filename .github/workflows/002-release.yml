@@ -69,7 +69,7 @@ jobs:
       - name: Package Helm Chart
         run: |
           helm package helm \
-            --version ${{ steps.vars.outputs.RELEASE_VERSION }} \
+            --version 0.1.0+${{ steps.vars.outputs.RELEASE_VERSION }} \
             --app-version ${{ steps.vars.outputs.RELEASE_VERSION }} \
             -d release-assets/
 

@@ -78,9 +78,13 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      - name: Set Git Short Hash
+        id: vars
+        run: echo "short_hash=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+
       - name: Package Helm Chart
         run: |
-          helm package helm
+          helm package helm --version "0.1.0-dev.${{ steps.vars.outputs.short_hash }}"
           mkdir -p helm-charts
           mv oomlet-*.tgz helm-charts/
 
