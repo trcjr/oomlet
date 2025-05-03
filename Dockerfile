@@ -21,7 +21,8 @@ FROM eclipse-temurin:21-jre-jammy
 WORKDIR /app
 
 # Only copy the built JAR
-COPY --from=builder /build/target/oomlet-*.jar app.jar
+ARG JAR_FILE=oomlet-*.jar
+COPY --from=builder /build/target/${JAR_FILE} app.jar
 
 # Optional config
 COPY src/main/resources/endpoint_health_indicator_config.yml /opt/
