@@ -40,6 +40,19 @@ jobs:
         id: vars
         run: echo "SHORT_HASH=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
 
+      - name: Cache Maven packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.m2/repository
+            ~/.m2/wrapper
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: Confirm Cache Status
+        run: echo "Maven cache key used: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}"
+
       - name: Build and Verify with Maven
         run: |
           ./mvnw versions:set -DnewVersion="develop-SNAPSHOT-${{ steps.vars.outputs.SHORT_HASH }}"
@@ -52,6 +65,14 @@ jobs:
           path: target/surefire-reports/
           if-no-files-found: warn
           overwrite: true
+
+      - name: Publish Test Report
+        uses: dorny/test-reporter@v1
+        if: always()
+        with:
+          name: Unit Tests
+          path: target/surefire-reports/*.xml
+          reporter: java-junit
 
   docker:
     name: Docker Build and Push
@@ -94,6 +115,9 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      - name: Lint Helm Chart
+        run: helm lint helm/oomlet
+
       - name: Package Helm Chart
         run: |
           SHORT_HASH=${{ needs.build-test.outputs.short_hash }}
@@ -124,6 +148,19 @@ jobs:
 
       - name: Checkout Code
         uses: actions/checkout@v4
+
+      - name: Cache Maven packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.m2/repository
+            ~/.m2/wrapper
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: Confirm Cache Status
+        run: echo "Maven cache key used: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}"
 
       - name: Build with Coverage
         run: ./mvnw clean verify

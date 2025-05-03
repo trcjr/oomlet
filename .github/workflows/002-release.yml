@@ -1,0 +1,107 @@
+name: Release OOMlet
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  release:
+    name: Build, Test, Package, and Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Set Git Tag Version
+        id: vars
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+          echo "RELEASE_VERSION=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Set Release Version in Maven
+        run: ./mvnw versions:set -DnewVersion=${{ steps.vars.outputs.RELEASE_VERSION }}
+
+      - name: Cache Maven packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.m2/repository
+            ~/.m2/wrapper
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: Build and Verify
+        run: ./mvnw clean verify
+
+      - name: Build and Push Docker Image
+        run: |
+          IMAGE_VERSION=ghcr.io/${{ github.repository }}:${{ steps.vars.outputs.RELEASE_VERSION }}
+          IMAGE_LATEST=ghcr.io/${{ github.repository }}:latest
+
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+          docker build -t $IMAGE_VERSION -t $IMAGE_LATEST .
+          docker push $IMAGE_VERSION
+          docker push $IMAGE_LATEST
+
+      - name: Generate Source Archive
+        run: |
+          mkdir -p release-assets
+          git archive --format=tar.gz --output=release-assets/oomlet-${{ steps.vars.outputs.RELEASE_VERSION }}.tar.gz HEAD
+          git archive --format=zip --output=release-assets/oomlet-${{ steps.vars.outputs.RELEASE_VERSION }}.zip HEAD
+
+      - name: Lint Helm Chart
+        run: helm lint helm/oomlet
+
+      - name: Package Helm Chart
+        run: |
+          helm package helm/oomlet \
+            --version ${{ steps.vars.outputs.RELEASE_VERSION }} \
+            --app-version ${{ steps.vars.outputs.RELEASE_VERSION }} \
+            -d release-assets/
+
+      - name: Upload to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: target/site/jacoco/jacoco.xml
+          fail_ci_if_error: false
+
+      - name: Generate Changelog
+        id: changelog
+        uses: heinrichreimer/github-changelog-generator-action@v2.2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          output: CHANGELOG.md
+
+      - name: Read Changelog Content
+        id: changelog_content
+        run: |
+          echo "body<<EOF" >> $GITHUB_OUTPUT
+          cat CHANGELOG.md >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Upload GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          body: ${{ steps.changelog_content.outputs.body }}
+          files: |
+            target/oomlet-*.jar
+            release-assets/oomlet-${{ steps.vars.outputs.RELEASE_VERSION }}.tar.gz
+            release-assets/oomlet-${{ steps.vars.outputs.RELEASE_VERSION }}.zip
+            release-assets/oomlet-${{ steps.vars.outputs.RELEASE_VERSION }}.tgz
