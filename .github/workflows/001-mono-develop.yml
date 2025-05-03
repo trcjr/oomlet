@@ -26,7 +26,7 @@ jobs:
     name: Build and Test
     runs-on: ubuntu-latest
     outputs:
-        short_hash: ${{ steps.vars.outputs.SHORT_HASH }}  
+        short_hash: ${{ steps.vars.outputs.short_hash }}  
     needs: woke
     steps:
       - name: Checkout Code
@@ -40,7 +40,7 @@ jobs:
 
       - name: Set Git Short Hash
         id: vars
-        run: echo "SHORT_HASH=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+        run: echo "short_hash=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
 
       - name: Cache Maven packages
         uses: actions/cache@v4
@@ -58,7 +58,7 @@ jobs:
 
       - name: Build and Verify with Maven
         run: |
-          ./mvnw versions:set -DnewVersion="develop-SNAPSHOT-${{ steps.vars.outputs.SHORT_HASH }}"
+          ./mvnw versions:set -DnewVersion="develop-SNAPSHOT-${{ steps.vars.outputs.short_hash }}"
           ./mvnw clean verify
 
       - name: Upload Test Results
@@ -210,13 +210,5 @@ jobs:
           path: |
             source.zip
             source.tar.gz
-          if-no-files-found: warn
-          overwrite: true
-
-      - name: Upload JAR
-        uses: actions/upload-artifact@v4
-        with:
-          name: oomlet-jar
-          path: target/oomlet-*.jar
           if-no-files-found: warn
           overwrite: true
