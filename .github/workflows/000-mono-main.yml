@@ -52,16 +52,19 @@ jobs:
       - name: Confirm Cache Status
         run: echo "Maven cache key used: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}"
 
+      - name: Extract Version from pom.xml
+        id: version
+        run: echo "version=$(./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout)" >> "$GITHUB_OUTPUT"
+
       - name: Build and Verify with Maven
         run: |
-          ./mvnw versions:set -DnewVersion="0.1.0"
           ./mvnw clean verify
 
       - name: Upload Spring Boot JAR
         uses: actions/upload-artifact@v4
         with:
           name: oomlet-jar
-          path: target/oomlet-0.1.0.jar
+          path: target/oomlet-${{ steps.version.outputs.version }}.jar
           if-no-files-found: error
           overwrite: true
 
@@ -109,14 +112,18 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Extract Version from pom.xml
+        id: version
+        run: echo "version=$(./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout)" >> "$GITHUB_OUTPUT"
+
       - name: Build Docker Image
         run: |
           docker build \
-            -t ghcr.io/${{ github.repository_owner }}/oomlet:0.1.0 .
+            -t ghcr.io/${{ github.repository_owner }}/oomlet:${{ steps.version.outputs.version }} .
 
       - name: Push Docker Image
         run: |
-          docker push ghcr.io/${{ github.repository_owner }}/oomlet:0.1.0
+          docker push ghcr.io/${{ github.repository_owner }}/oomlet:${{ steps.version.outputs.version }}
 
   helm:
     name: Helm Package and Upload
@@ -129,9 +136,13 @@ jobs:
       - name: Lint Helm Chart
         run: helm lint helm
 
+      - name: Extract Version from pom.xml
+        id: version
+        run: echo "version=$(./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout)" >> "$GITHUB_OUTPUT"
+
       - name: Package Helm Chart
         run: |
-          helm package helm --version "0.1.0"
+          helm package helm --version "${{ steps.version.outputs.version }}"
           mkdir -p helm-charts
           mv oomlet-*.tgz helm-charts/
 

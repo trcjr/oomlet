@@ -67,7 +67,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: oomlet-jar
-          path: target/oomlet-0.1.0-dev.${{ steps.vars.outputs.short_hash }}.jar
+          path: target/oomlet-${{ env.RELEASE_VERSION }}-dev.${{ steps.vars.outputs.short_hash }}.jar
           if-no-files-found: error
           overwrite: true
 
@@ -129,7 +129,7 @@ jobs:
 
       - name: Push Docker Image
         run: |
-          docker push ghcr.io/${{ github.repository_owner }}/oomlet:0.1.0-dev.${{ steps.vars.outputs.short_hash }}
+          docker push ghcr.io/${{ github.repository_owner }}/oomlet:${{ env.RELEASE_VERSION }}-dev.${{ steps.vars.outputs.short_hash }}
 
   helm:
     name: Helm Package and Upload
