@@ -12,6 +12,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
       - name: Set Git Short Hash
         id: vars
         run: echo "SHORT_HASH=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
@@ -19,21 +22,51 @@ jobs:
       - name: Debug Git Short Hash
         run: echo "SHORT_HASH=${{ steps.vars.outputs.SHORT_HASH }}"
 
+      - name: Lint Helm Chart
+        run: helm lint helm
+
       - name: List Helm Directory
         run: ls -l helm
 
       - name: Show Chart.yaml
         run: cat helm/Chart.yaml
 
-      - name: Helm Lint
-        run: helm lint helm
+      - name: Show Current Directory
+        run: pwd
 
-      - name: Helm Package
-        run: |
-          SHORT_HASH=${{ steps.vars.outputs.SHORT_HASH }}
-          helm package helm --version "0.1.0-dev.${SHORT_HASH}"
-          mkdir -p helm-charts
-          mv oomlet-*.tgz helm-charts/
+      - name: List All Files
+        run: ls -lah
+
+      - name: List Git Files
+        run: git ls-files
+
+      - name: Show Git Status
+        run: git status
+
+      - name: Print Environment Variables
+        run: env
+
+      - name: Show Git Log
+        run: git log -3 --oneline
 
       - name: Helm Version
         run: helm version
+
+      - name: Package Helm Chart
+        run: |
+          VERSION="0.1.0+${{ steps.vars.outputs.SHORT_HASH }}"
+          if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(\+[a-zA-Z0-9.]+)?$ ]]; then
+            echo "Invalid SemVer version string: $VERSION"
+            exit 1
+          fi
+          helm package helm --version "$VERSION"
+          mkdir -p helm-charts
+          mv oomlet-*.tgz helm-charts/
+
+      - name: Show helm-charts Contents
+        run: ls -lh helm-charts
+
+      - name: Output Packaged Chart Path
+        run: |
+          echo "Packaged chart:"
+          ls helm-charts/*.tgz
