@@ -119,10 +119,13 @@ jobs:
       - name: Lint Helm Chart
         run: helm lint helm
 
+      - name: Set Git Short Hash
+        id: vars
+        run: echo "SHORT_HASH=${{ needs.build-test.outputs.short_hash }}" >> "$GITHUB_OUTPUT"
+
       - name: Package Helm Chart
         run: |
-          SHORT_HASH=${{ needs.build-test.outputs.short_hash }}
-          helm package helm --version develop-SNAPSHOT-${SHORT_HASH}
+          helm package helm --version "develop-SNAPSHOT-${{ steps.vars.outputs.SHORT_HASH }}"
           mkdir -p helm-charts
           mv oomlet-*.tgz helm-charts/
 
