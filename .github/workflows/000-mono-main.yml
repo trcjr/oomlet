@@ -39,22 +39,29 @@ jobs:
         id: vars
         run: echo "short_hash=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
 
+      - name: Compute Maven Cache Key
+        id: cachekey
+        run: |
+          echo "key=${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}" >> "$GITHUB_OUTPUT"
+
       - name: Cache Maven packages
         uses: actions/cache@v4
         with:
           path: |
             ~/.m2/repository
             ~/.m2/wrapper
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          key: ${{ steps.cachekey.outputs.key }}
           restore-keys: |
             ${{ runner.os }}-maven-
 
       - name: Confirm Cache Status
-        run: echo "Maven cache key used: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}"
+        run: |
+          echo "Maven cache key used: ${{ steps.cachekey.outputs.key }}"
 
       - name: Extract Version from pom.xml
         id: version
-        run: echo "version=$(./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout)" >> "$GITHUB_OUTPUT"
+        run: |
+          echo "version=$(./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout)" >> "$GITHUB_OUTPUT"
 
       - name: Build and Verify with Maven
         run: |
@@ -114,7 +121,8 @@ jobs:
 
       - name: Extract Version from pom.xml
         id: version
-        run: echo "version=$(./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout)" >> "$GITHUB_OUTPUT"
+        run: |
+          echo "version=$(./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout)" >> "$GITHUB_OUTPUT"
 
       - name: Build Docker Image
         run: |
@@ -168,18 +176,24 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      - name: Compute Maven Cache Key
+        id: cachekey
+        run: |
+          echo "key=${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}" >> "$GITHUB_OUTPUT"
+
       - name: Cache Maven packages
         uses: actions/cache@v4
         with:
           path: |
             ~/.m2/repository
             ~/.m2/wrapper
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          key: ${{ steps.cachekey.outputs.key }}
           restore-keys: |
             ${{ runner.os }}-maven-
 
       - name: Confirm Cache Status
-        run: echo "Maven cache key used: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}"
+        run: |
+          echo "Maven cache key used: ${{ steps.cachekey.outputs.key }}"
 
       - name: Download Coverage Reports
         uses: actions/download-artifact@v4

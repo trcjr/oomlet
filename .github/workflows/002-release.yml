@@ -103,12 +103,12 @@ jobs:
       - name: Copy Versioned JAR to release-assets
         run: |
           mkdir -p release-assets
-          cp target/oomlet-${{ steps.vars.outputs.RELEASE_VERSION }}.jar release-assets/
+          cp target/oomlet-${{ steps.vars.outputs.RELEASE_VERSION }}.jar ./release-assets/
 
       - name: Generate Distributable ZIP
         run: |
           mkdir -p release-bundle
-          cp ../release-assets/oomlet-${{ steps.vars.outputs.RELEASE_VERSION }}.jar release-bundle/
+          cp release-assets/oomlet-${{ steps.vars.outputs.RELEASE_VERSION }}.jar release-bundle/
           cp release-assets/oomlet-${{ steps.vars.outputs.RELEASE_VERSION }}.tgz release-bundle/
           cp CHANGELOG.md release-bundle/
           cd release-bundle
