@@ -15,15 +15,7 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Download JAR
-        uses: actions/download-artifact@v4
-        with:
-          name: oomlet-jar
 
-      - name: Download Built JAR
-        uses: actions/download-artifact@v4
-        with:
-          name: oomlet-jar
 
       - name: woke
         uses: get-woke/woke-action@v0
