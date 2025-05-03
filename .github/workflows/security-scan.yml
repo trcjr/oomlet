@@ -2,8 +2,8 @@ name: Security Scan
 
 on:
   schedule:
-    - cron: '0 0 * * 0' # |
-        Every Sunday at midnight UTC
+    # Every Sunday at midnight UTC
+    - cron: '0 0 * * 0'
   workflow_dispatch:
 
 jobs:
@@ -34,7 +34,7 @@ jobs:
 
       - name: Also output SARIF report
         run: |
-          ./dependency-check/bin/dependency-check.sh --project "oomlet" --scan . --format SARIF --out dependency-check-report.sarif
+          ./dependency-check/dependency-check/bin/dependency-check.sh --project "oomlet" --scan . --format SARIF --out dependency-check-report.sarif
 
       - name: Upload SARIF report as artifact
         uses: actions/upload-artifact@v4
@@ -59,17 +59,20 @@ jobs:
     needs: maven-audit
 
     steps:
-      - name: Install Trivy
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Extract short Git SHA
+        id: vars
+        run: echo "short_hash=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Install Trivy for config scan
         uses: aquasecurity/trivy-action@0.14.0
         with:
           scan-type: config
           scan-ref: .
           severity: HIGH,CRITICAL
           exit-code: 1
-
-      - name: Extract short Git SHA
-        id: vars
-        run: echo "short_hash=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
 
       - name: Scan Docker Image
         uses: aquasecurity/trivy-action@0.14.0
