@@ -1,9 +1,11 @@
 # 🥚 OOMlet
 
 ![Build Status](https://github.com/trcjr/oomlet/actions/workflows/000-mono-workflow.yml/badge.svg)
+![Develop Snapshot](https://github.com/trcjr/oomlet/actions/workflows/001-mono-develop.yml/badge.svg?branch=develop)
 ![Security Scan](https://github.com/trcjr/oomlet/actions/workflows/security-scan.yml/badge.svg)
 
 [![Coverage](https://codecov.io/gh/trcjr/oomlet/branch/main/graph/badge.svg)](https://codecov.io/gh/trcjr/oomlet)
+[![Develop Coverage](https://codecov.io/gh/trcjr/oomlet/branch/develop/graph/badge.svg)](https://codecov.io/gh/trcjr/oomlet/branch/develop)
 ![Tests](https://img.shields.io/badge/tests-100%25%20passing-brightgreen)
 
 ![Java](https://img.shields.io/badge/Java-21-blue)

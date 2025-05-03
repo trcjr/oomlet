@@ -23,6 +23,8 @@ jobs:
   build-test:
     name: Build and Test
     runs-on: ubuntu-latest
+    outputs:
+        short_hash: ${{ steps.vars.outputs.SHORT_HASH }}  
     needs: woke
     steps:
       - name: Checkout Code
@@ -69,13 +71,20 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Set Git Short Hash
+        run: |
+          SHORT_HASH=${{ needs.build-test.outputs.short_hash }}
+          echo "SHORT_HASH=${SHORT_HASH}"
+
       - name: Build Docker Image
         run: |
-          docker build -t ghcr.io/${{ github.repository_owner }}/oomlet:develop-snapshot-${{ steps.vars.outputs.SHORT_HASH }} .
+          SHORT_HASH=${{ needs.build-test.outputs.short_hash }}
+          docker build -t ghcr.io/${{ github.repository_owner }}/oomlet:develop-snapshot-${SHORT_HASH} .
 
       - name: Push Docker Image
         run: |
-          docker push ghcr.io/${{ github.repository_owner }}/oomlet:develop-snapshot-${{ steps.vars.outputs.SHORT_HASH }}
+          SHORT_HASH=${{ needs.build-test.outputs.short_hash }}
+          docker push ghcr.io/${{ github.repository_owner }}/oomlet:develop-snapshot-${SHORT_HASH}
 
   helm:
     name: Helm Package and Upload
@@ -87,7 +96,8 @@ jobs:
 
       - name: Package Helm Chart
         run: |
-          helm package helm/oomlet --version develop-SNAPSHOT-${{ steps.vars.outputs.SHORT_HASH }}
+          SHORT_HASH=${{ needs.build-test.outputs.short_hash }}
+          helm package helm/oomlet --version develop-SNAPSHOT-${SHORT_HASH}
           mkdir -p helm-charts
           mv oomlet-*.tgz helm-charts/
 
