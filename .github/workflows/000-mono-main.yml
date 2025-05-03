@@ -40,7 +40,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: test-results
-          path: target/surefire-reports/
+          path: target/
           if-no-files-found: warn
           overwrite: true
 
@@ -81,7 +81,7 @@ jobs:
       - name: Set Git Short Hash
         id: vars
         run: |
-          echo "short_hash=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+          echo "short_hash=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
 
 
       - name: Package Helm Chart
@@ -114,8 +114,10 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Build with Coverage
-        run: ./mvnw clean verify
+      - name: Download Test Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: test-results
 
       - name: Upload to Codecov
         uses: codecov/codecov-action@v4

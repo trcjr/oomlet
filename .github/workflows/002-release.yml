@@ -27,7 +27,7 @@ jobs:
       - name: Set Git Tag Version
         id: vars
         run: |
-          VERSION=${GITHUB_REF#refs/tags/v}
+          VERSION="${GITHUB_REF#refs/tags/v}"
           echo "RELEASE_VERSION=$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Set Release Version in Maven

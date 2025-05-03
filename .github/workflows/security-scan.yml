@@ -66,10 +66,14 @@ jobs:
           severity: HIGH,CRITICAL
           exit-code: 1
 
+      - name: Extract short Git SHA
+        id: vars
+        run: echo "SHORT_HASH=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+
       - name: Scan Docker Image
         uses: aquasecurity/trivy-action@0.14.0
         with:
           scan-type: image
-          image-ref: ghcr.io/${{ github.repository_owner }}/oomlet/oomlet:0.1.0-dev.${{ github.sha }}
+          image-ref: ghcr.io/${{ github.repository_owner }}/oomlet/oomlet:0.1.0-dev.${{ steps.vars.outputs.SHORT_HASH }}
           severity: HIGH,CRITICAL
           exit-code: 1

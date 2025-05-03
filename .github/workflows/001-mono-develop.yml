@@ -77,6 +77,16 @@ jobs:
           path: target/surefire-reports/*.xml
           reporter: java-junit
 
+      - name: Upload Coverage Reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-data
+          path: |
+            target/site/jacoco/jacoco.xml
+            target/site/jacoco
+          if-no-files-found: warn
+          overwrite: true
+
   docker:
     name: Docker Build and Push
     runs-on: ubuntu-latest
@@ -165,8 +175,11 @@ jobs:
         run: |
           echo "Maven cache key used: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}"
 
-      - name: Build with Coverage
-        run: ./mvnw clean verify
+      - name: Download Coverage Reports
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage-data
+          path: target/site/jacoco
 
       - name: Upload to Codecov
         uses: codecov/codecov-action@v4
