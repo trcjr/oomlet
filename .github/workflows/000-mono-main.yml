@@ -1,5 +1,4 @@
-name: Build OOMlet
-
+name: OOMlet main Branch CI Workflow
 on:
   push:
     branches:
