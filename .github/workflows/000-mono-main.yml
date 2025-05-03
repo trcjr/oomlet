@@ -127,11 +127,15 @@ jobs:
       - name: Build Docker Image
         run: |
           docker build \
-            -t ghcr.io/${{ github.repository_owner }}/oomlet:${{ steps.version.outputs.version }} .
+            -t ghcr.io/${{ github.repository_owner }}/oomlet:${{ steps.version.outputs.version }} \
+            -t ghcr.io/${{ github.repository_owner }}/oomlet:main \
+            -t ghcr.io/${{ github.repository_owner }}/oomlet:latest .
 
       - name: Push Docker Image
         run: |
           docker push ghcr.io/${{ github.repository_owner }}/oomlet:${{ steps.version.outputs.version }}
+          docker push ghcr.io/${{ github.repository_owner }}/oomlet:main
+          docker push ghcr.io/${{ github.repository_owner }}/oomlet:latest
 
   helm:
     name: Helm Package and Upload
