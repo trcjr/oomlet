@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import sun.misc.Signal;
+import java.util.Map;
 
 @Service
 public class SignalHandlerService {
@@ -54,8 +55,30 @@ public class SignalHandlerService {
                 shutdownApplication();
             }
             case "HUP" -> logger.info("SIGHUP received: No-op (possible future reload trigger).");
-            case "USR1", "USR2" -> logger.info("SIG{} received: User-defined action (currently no-op).", signalName);
+            case "USR1" -> logHeapUsage();
+            case "USR2" -> logThreadDump();
             default -> logger.warn("Unknown signal {} received. No action taken.", signalName);
+        }
+    }
+
+    private void logHeapUsage() {
+        Runtime runtime = Runtime.getRuntime();
+        long usedMemory = runtime.totalMemory() - runtime.freeMemory();
+        long maxMemory = runtime.maxMemory();
+        logger.info("SIGUSR1 received: Heap Usage - Used: {} MB, Max: {} MB",
+                usedMemory / (1024 * 1024),
+                maxMemory / (1024 * 1024));
+    }
+
+    private void logThreadDump() {
+        logger.info("SIGUSR2 received: Capturing thread dump...");
+        Map<Thread, StackTraceElement[]> allThreads = Thread.getAllStackTraces();
+        for (Map.Entry<Thread, StackTraceElement[]> entry : allThreads.entrySet()) {
+            Thread thread = entry.getKey();
+            logger.info("Thread: {} (state: {})", thread.getName(), thread.getState());
+            for (StackTraceElement element : entry.getValue()) {
+                logger.info("    at {}", element);
+            }
         }
     }
 

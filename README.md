@@ -1,13 +1,34 @@
 # 🥚 OOMlet
 
-![Build Status](https://github.com/trcjr/oomlet/actions/workflows/000-mono-workflow.yml/badge.svg) [![Coverage](https://codecov.io/gh/trcjr/oomlet/branch/main/graph/badge.svg)](https://codecov.io/gh/trcjr/oomlet) ![Tests](https://img.shields.io/badge/tests-57%20passing-brightgreen) ![Java](https://img.shields.io/badge/Java-21-blue) ![Last Commit](https://img.shields.io/github/last-commit/trcjr/oomlet) ![License](https://img.shields.io/badge/license-MIT-blue) ![Crashing With Style](https://img.shields.io/badge/crashing-with--style-yellow)
+![Build Status](https://github.com/trcjr/oomlet/actions/workflows/000-mono-workflow.yml/badge.svg)
+![Security Scan](https://github.com/trcjr/oomlet/actions/workflows/security-scan.yml/badge.svg)
 
+[![Coverage](https://codecov.io/gh/trcjr/oomlet/branch/main/graph/badge.svg)](https://codecov.io/gh/trcjr/oomlet)
+![Tests](https://img.shields.io/badge/tests-100%25%20passing-brightgreen)
+
+![Java](https://img.shields.io/badge/Java-21-blue)
+![Last Commit](https://img.shields.io/github/last-commit/trcjr/oomlet)
+![License](https://img.shields.io/badge/license-MIT-blue)
+
+![Crashing With Style](https://img.shields.io/badge/crashing-with--style-yellow)
 
 **OOMlet** — a lightweight, chaos-friendly QA and debugging Spring Boot application designed to help you **test**, **stress**, and **harden** your systems.
 
 🍳 **Crack limits. Scramble resources. Cook up resilience.**
 
 ---
+
+## 📚 Table of Contents
+- [Quick Start](#-quick-start)
+- [API Endpoints](#-api-endpoints)
+- [Stress Testing Endpoints](#-stress-testing-endpoints)
+- [Connectivity & Delay Simulation](#-connectivity--delay-simulation)
+- [Crash the Application](#-crash-the-application)
+- [Runtime Configuration](#-runtime-configuration)
+- [Docker and Kubernetes Support](#-docker-and-kubernetes-support)
+- [Testing and Code Coverage](#-testing-and-code-coverage)
+- [Signal Handling](#-signal-handling)
+- [Architecture Overview](#-architecture-overview)
 
 ## 🚀 Features
 
@@ -42,13 +63,13 @@
 ### 2. Run the application
 
 ```bash
-java -jar target/oomlet-0.0.7.jar
+java -jar target/oomlet-0.0.8.jar
 ```
 
 (Optional) Override port:
 
 ```bash
-SERVER_PORT=9090 java -jar target/oomlet-0.0.7.jar
+SERVER_PORT=9090 java -jar target/oomlet-0.0.8.jar
 ```
 
 ---
@@ -67,7 +88,7 @@ SERVER_PORT=9090 java -jar target/oomlet-0.0.7.jar
 | `/api/ulimits` | GET | View OS resource limits (parsed `ulimit`) |
 | `/api/logging/spring?level=DEBUG` | POST | Change Spring framework log level dynamically |
 | `/api/crash?code=137` | POST | Exit the process with specific code |
-| `/api/ping?host=https://example.com` | GET | Test outbound connectivity to a URL |
+| `/api/ping?url=https://example.com` | GET | Test outbound connectivity to a URL |
 | `/api/latency?delayMillis=1500` | GET | Simulate response latency for timeout testing |
 
 ---
@@ -99,7 +120,7 @@ curl 'http://localhost:8080/api/burn-cpu?millis=5000&threads=4'
 ### Outbound Ping
 
 ```bash
-curl 'http://localhost:8080/api/ping?host=https://example.com'
+curl 'http://localhost:8080/api/ping?url=https://example.com'
 ```
 
 ### Simulate Latency
@@ -130,6 +151,14 @@ curl -X POST 'http://localhost:8080/api/logging/spring?level=DEBUG'
 
 ```bash
 curl 'http://localhost:8080/api/logging/spring'
+```
+
+### JVM Memory Options
+
+You can limit or expand memory usage for stress tests:
+
+```bash
+JAVA_OPTS="-Xmx512m -Xms128m" java -jar target/oomlet-0.0.8.jar
 ```
 
 ---
@@ -185,6 +214,36 @@ View live coverage:
 ✅ Build fails if coverage threshold not met.  
 ✅ CI/CD runs on each push via GitHub Actions.
 
+### 🔒 Coverage Gate
+
+This project enforces 80% minimum line coverage using JaCoCo.
+
+Fail the build on low coverage by editing `pom.xml`:
+
+```xml
+<rule>
+  <element>BUNDLE</element>
+  <limits>
+    <limit>
+      <counter>INSTRUCTION</counter>
+      <value>COVEREDRATIO</value>
+      <minimum>0.80</minimum>
+    </limit>
+  </limits>
+</rule>
+```
+
+Or use `.codecov.yml` in root:
+
+```yaml
+coverage:
+  status:
+    project:
+      default:
+        target: 80%
+        threshold: 1%
+```
+
 ---
 
 ## 🚦 Signal Handling
@@ -196,6 +255,9 @@ OOMlet handles:
 - SIGHUP, SIGQUIT, SIGUSR1, SIGUSR2
 
 Gracefully shuts down or logs custom signals.
+
+- SIGUSR1 — logs current heap usage and active memory state
+- SIGUSR2 — logs thread dump and internal diagnostics
 
 ---
 
