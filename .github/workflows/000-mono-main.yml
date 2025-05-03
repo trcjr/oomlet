@@ -1,4 +1,5 @@
 name: OOMlet main Branch CI Workflow
+
 on:
   push:
     branches:
@@ -22,6 +23,8 @@ jobs:
   build-test:
     name: Build and Test
     runs-on: ubuntu-latest
+    outputs:
+      short_hash: ${{ steps.vars.outputs.short_hash }}
     needs: woke
     steps:
       - name: Checkout Code
@@ -33,21 +36,61 @@ jobs:
           distribution: temurin
           java-version: 21
 
-      - name: Build and Verify with Maven
-        run: ./mvnw clean verify
+      - name: Set Git Short Hash
+        id: vars
+        run: echo "short_hash=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
 
-      - name: Upload Test Results
+      - name: Cache Maven packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.m2/repository
+            ~/.m2/wrapper
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: Build and Verify with Maven
+        run: |
+          ./mvnw versions:set -DnewVersion="0.1.0"
+          ./mvnw clean verify
+
+      - name: Upload Spring Boot JAR
         uses: actions/upload-artifact@v4
         with:
-          name: test-results
-          path: target/
+          name: oomlet-jar
+          path: target/oomlet-0.1.0.jar
+          if-no-files-found: error
+          overwrite: true
+
+  build-docs:
+    name: Generate JavaDocs
+    runs-on: ubuntu-latest
+    needs: build-test
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Generate JavaDocs
+        run: ./mvnw javadoc:javadoc
+
+      - name: Upload JavaDocs
+        uses: actions/upload-artifact@v4
+        with:
+          name: javadocs
+          path: target/site/apidocs/
           if-no-files-found: warn
           overwrite: true
 
   docker:
     name: Docker Build and Push
     runs-on: ubuntu-latest
-    needs: build-test
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -64,29 +107,27 @@ jobs:
 
       - name: Build Docker Image
         run: |
-          docker build -t ghcr.io/${{ github.repository_owner }}/oomlet:latest .
+          docker build \
+            -t ghcr.io/${{ github.repository_owner }}/oomlet:0.1.0 .
 
       - name: Push Docker Image
         run: |
-          docker push ghcr.io/${{ github.repository_owner }}/oomlet:latest
+          docker push ghcr.io/${{ github.repository_owner }}/oomlet:0.1.0
 
   helm:
     name: Helm Package and Upload
     runs-on: ubuntu-latest
-    needs: docker
+    needs: build-test
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Set Git Short Hash
-        id: vars
-        run: |
-          echo "short_hash=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
-
+      - name: Lint Helm Chart
+        run: helm lint helm
 
       - name: Package Helm Chart
         run: |
-          helm package helm --version "0.1.0-dev.${{ steps.vars.outputs.short_hash }}"
+          helm package helm --version "0.1.0"
           mkdir -p helm-charts
           mv oomlet-*.tgz helm-charts/
 
@@ -103,58 +144,17 @@ jobs:
   coverage:
     name: Coverage Reporting and Artifacts
     runs-on: ubuntu-latest
-    needs: helm
+    needs: build-test
+    env:
+      SHORT_HASH: ${{ needs.build-test.outputs.short_hash }}
     steps:
-      - name: Set up Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: 21
+      - name: Run Coverage Report
+        run: ./mvnw jacoco:report
 
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      - name: Download Test Artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: test-results
-
-      - name: Upload to Codecov
-        uses: codecov/codecov-action@v4
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: target/site/jacoco/jacoco.xml
-          fail_ci_if_error: true
-
-      - name: Upload HTML Coverage to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./target/site/jacoco
-          publish_branch: gh-pages
-
-      - name: Prepare Source Package
-        run: |
-          mkdir -p staging/source
-          rsync -av --exclude=target --exclude=.git --exclude=staging ./ staging/source/
-          cd staging/source
-          zip -r ../../source.zip .
-          tar -czf ../../source.tar.gz .
-
-      - name: Upload Source Archives
+      - name: Upload Coverage Results
         uses: actions/upload-artifact@v4
         with:
-          name: source-archives
-          path: |
-            source.zip
-            source.tar.gz
-          if-no-files-found: warn
-          overwrite: true
-
-      - name: Upload JAR
-        uses: actions/upload-artifact@v4
-        with:
-          name: oomlet-jar
-          path: target/oomlet-*.jar
+          name: coverage
+          path: target/site/jacoco/
           if-no-files-found: warn
           overwrite: true

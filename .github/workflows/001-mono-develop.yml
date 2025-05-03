@@ -58,14 +58,14 @@ jobs:
 
       - name: Build and Verify with Maven
         run: |
-          ./mvnw versions:set -DnewVersion="develop-SNAPSHOT-${{ steps.vars.outputs.short_hash }}"
+          ./mvnw versions:set -DnewVersion="0.1.0-dev.${{ steps.vars.outputs.short_hash }}"
           ./mvnw clean verify
 
       - name: Upload Spring Boot JAR
         uses: actions/upload-artifact@v4
         with:
           name: oomlet-jar
-          path: target/oomlet-develop-SNAPSHOT-${{ steps.vars.outputs.short_hash }}.jar
+          path: target/oomlet-0.1.0-dev.${{ steps.vars.outputs.short_hash }}.jar
           if-no-files-found: error
           overwrite: true
 
@@ -123,11 +123,11 @@ jobs:
       - name: Build Docker Image
         run: |
           docker build \
-            -t ghcr.io/${{ github.repository_owner }}/oomlet:develop-snapshot-${{ steps.vars.outputs.short_hash }} .
+            -t ghcr.io/${{ github.repository_owner }}/oomlet:0.1.0-dev.${{ steps.vars.outputs.short_hash }} .
 
       - name: Push Docker Image
         run: |
-          docker push ghcr.io/${{ github.repository_owner }}/oomlet:develop-snapshot-${{ steps.vars.outputs.short_hash }}
+          docker push ghcr.io/${{ github.repository_owner }}/oomlet:0.1.0-dev.${{ steps.vars.outputs.short_hash }}
 
   helm:
     name: Helm Package and Upload
