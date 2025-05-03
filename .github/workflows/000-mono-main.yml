@@ -80,7 +80,9 @@ jobs:
 
       - name: Set Git Short Hash
         id: vars
-        run: echo "short_hash=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+        run: |
+          echo "short_hash=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
 
       - name: Package Helm Chart
         run: |
