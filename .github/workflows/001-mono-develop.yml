@@ -117,12 +117,12 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Lint Helm Chart
-        run: helm lint helm/oomlet
+        run: helm lint helm
 
       - name: Package Helm Chart
         run: |
           SHORT_HASH=${{ needs.build-test.outputs.short_hash }}
-          helm package helm/oomlet --version develop-SNAPSHOT-${SHORT_HASH}
+          helm package helm --version develop-SNAPSHOT-${SHORT_HASH}
           mkdir -p helm-charts
           mv oomlet-*.tgz helm-charts/
 

@@ -64,11 +64,11 @@ jobs:
           git archive --format=zip --output=release-assets/oomlet-${{ steps.vars.outputs.RELEASE_VERSION }}.zip HEAD
 
       - name: Lint Helm Chart
-        run: helm lint helm/oomlet
+        run: helm lint helm
 
       - name: Package Helm Chart
         run: |
-          helm package helm/oomlet \
+          helm package helm \
             --version ${{ steps.vars.outputs.RELEASE_VERSION }} \
             --app-version ${{ steps.vars.outputs.RELEASE_VERSION }} \
             -d release-assets/

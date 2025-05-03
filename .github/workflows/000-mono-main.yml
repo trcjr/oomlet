@@ -80,7 +80,7 @@ jobs:
 
       - name: Package Helm Chart
         run: |
-          helm package helm/oomlet
+          helm package helm
           mkdir -p helm-charts
           mv oomlet-*.tgz helm-charts/
 
