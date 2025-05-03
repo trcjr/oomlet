@@ -96,22 +96,19 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set Git Short Hash
-        run: |
-          SHORT_HASH=${{ needs.build-test.outputs.short_hash }}
-          echo "SHORT_HASH=${SHORT_HASH}"
+        id: vars
+        run: echo "SHORT_HASH=${{ needs.build-test.outputs.short_hash }}" >> "$GITHUB_OUTPUT"
 
       - name: Build Docker Image
         run: |
-          SHORT_HASH=${{ needs.build-test.outputs.short_hash }}
           JAR_FILE=oomlet-*.jar
           docker build \
             --build-arg JAR_FILE=${JAR_FILE} \
-            -t ghcr.io/${{ github.repository_owner }}/oomlet:develop-snapshot-${SHORT_HASH} .
+            -t ghcr.io/${{ github.repository_owner }}/oomlet:develop-snapshot-${{ steps.vars.outputs.SHORT_HASH }} .
 
       - name: Push Docker Image
         run: |
-          SHORT_HASH=${{ needs.build-test.outputs.short_hash }}
-          docker push ghcr.io/${{ github.repository_owner }}/oomlet:develop-snapshot-${SHORT_HASH}
+          docker push ghcr.io/${{ github.repository_owner }}/oomlet:develop-snapshot-${{ steps.vars.outputs.SHORT_HASH }}
 
   helm:
     name: Helm Package and Upload
