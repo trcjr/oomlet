@@ -6,6 +6,8 @@ on:
       - develop
   pull_request:
   workflow_dispatch:
+env:
+  RELEASE_VERSION: 0.1.0
 
 jobs:
   woke:
@@ -58,7 +60,7 @@ jobs:
 
       - name: Build and Verify with Maven
         run: |
-          ./mvnw versions:set -DnewVersion="0.1.0-dev.${{ steps.vars.outputs.short_hash }}"
+          ./mvnw versions:set -DnewVersion="${{ env.RELEASE_VERSION }}-dev.${{ steps.vars.outputs.short_hash }}"
           ./mvnw clean verify
 
       - name: Upload Spring Boot JAR
@@ -123,7 +125,7 @@ jobs:
       - name: Build Docker Image
         run: |
           docker build \
-            -t ghcr.io/${{ github.repository_owner }}/oomlet:0.1.0-dev.${{ steps.vars.outputs.short_hash }} .
+            -t ghcr.io/${{ github.repository_owner }}/oomlet:${{ env.RELEASE_VERSION }}-dev.${{ steps.vars.outputs.short_hash }} .
 
       - name: Push Docker Image
         run: |
@@ -144,7 +146,7 @@ jobs:
 
       - name: Package Helm Chart
         run: |
-          helm package helm --version "0.1.0-dev.${SHORT_HASH}"
+          helm package helm --version "${{ env.RELEASE_VERSION }}-dev.${SHORT_HASH}"
           mkdir -p helm-charts
           mv oomlet-*.tgz helm-charts/
 

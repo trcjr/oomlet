@@ -74,6 +74,6 @@ jobs:
         uses: aquasecurity/trivy-action@0.14.0
         with:
           scan-type: image
-          image-ref: ghcr.io/${{ github.repository_owner }}/oomlet/oomlet:0.1.0-dev.${{ steps.vars.outputs.SHORT_HASH }}
+          image-ref: ghcr.io/${{ github.repository_owner }}/oomlet/oomlet:0.1.0-dev.${{ steps.vars.outputs.short_hash }}
           severity: HIGH,CRITICAL
           exit-code: 1
