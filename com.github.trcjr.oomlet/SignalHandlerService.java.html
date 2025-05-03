@@ -7,66 +7,89 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import sun.misc.Signal;
+import java.util.Map;
 
 @Service
 public class SignalHandlerService {
 
-<span class="fc" id="L14">    private static final Logger logger = LoggerFactory.getLogger(SignalHandlerService.class);</span>
+<span class="fc" id="L15">    private static final Logger logger = LoggerFactory.getLogger(SignalHandlerService.class);</span>
     private final Runnable shutdownHook;
 
     // Default constructor: used in production
     public SignalHandlerService() {
-<span class="pc" id="L19">        this(() -&gt; System.exit(0));</span>
-<span class="fc" id="L20">    }</span>
+<span class="pc" id="L20">        this(() -&gt; System.exit(0));</span>
+<span class="fc" id="L21">    }</span>
 
     // Testable constructor
-<span class="fc" id="L23">    protected SignalHandlerService(Runnable shutdownHook) {</span>
-<span class="fc" id="L24">        this.shutdownHook = shutdownHook;</span>
-<span class="fc" id="L25">    }</span>
+<span class="fc" id="L24">    protected SignalHandlerService(Runnable shutdownHook) {</span>
+<span class="fc" id="L25">        this.shutdownHook = shutdownHook;</span>
+<span class="fc" id="L26">    }</span>
 
     @PostConstruct
     public void setupSignalHandlers() {
-<span class="fc" id="L29">        logger.info(&quot;Setting up OS signal handlers...&quot;);</span>
-<span class="fc" id="L30">        handleSignal(&quot;INT&quot;);</span>
-<span class="fc" id="L31">        handleSignal(&quot;TERM&quot;);</span>
-<span class="fc" id="L32">        handleSignal(&quot;HUP&quot;);</span>
-<span class="fc" id="L33">        handleSignal(&quot;QUIT&quot;);</span>
-<span class="fc" id="L34">        handleSignal(&quot;USR1&quot;);</span>
-<span class="fc" id="L35">        handleSignal(&quot;USR2&quot;);</span>
-<span class="fc" id="L36">    }</span>
+<span class="fc" id="L30">        logger.info(&quot;Setting up OS signal handlers...&quot;);</span>
+<span class="fc" id="L31">        handleSignal(&quot;INT&quot;);</span>
+<span class="fc" id="L32">        handleSignal(&quot;TERM&quot;);</span>
+<span class="fc" id="L33">        handleSignal(&quot;HUP&quot;);</span>
+<span class="fc" id="L34">        handleSignal(&quot;QUIT&quot;);</span>
+<span class="fc" id="L35">        handleSignal(&quot;USR1&quot;);</span>
+<span class="fc" id="L36">        handleSignal(&quot;USR2&quot;);</span>
+<span class="fc" id="L37">    }</span>
 
     private void handleSignal(String signalName) {
         try {
-<span class="fc" id="L40">            Signal.handle(new Signal(signalName), signal -&gt; {</span>
-<span class="nc" id="L41">                logger.info(&quot;Received OS signal: {}&quot;, signal.getName());</span>
-<span class="nc" id="L42">                onSignal(signal.getName());</span>
-<span class="nc" id="L43">            });</span>
-<span class="fc" id="L44">            logger.info(&quot;Registered handler for signal: {}&quot;, signalName);</span>
-<span class="fc" id="L45">        } catch (IllegalArgumentException e) {</span>
-<span class="fc" id="L46">            logger.warn(&quot;Signal {} not supported on this platform.&quot;, signalName);</span>
-<span class="fc" id="L47">        }</span>
-<span class="fc" id="L48">    }</span>
+<span class="fc" id="L41">            Signal.handle(new Signal(signalName), signal -&gt; {</span>
+<span class="nc" id="L42">                logger.info(&quot;Received OS signal: {}&quot;, signal.getName());</span>
+<span class="nc" id="L43">                onSignal(signal.getName());</span>
+<span class="nc" id="L44">            });</span>
+<span class="fc" id="L45">            logger.info(&quot;Registered handler for signal: {}&quot;, signalName);</span>
+<span class="fc" id="L46">        } catch (IllegalArgumentException e) {</span>
+<span class="fc" id="L47">            logger.warn(&quot;Signal {} not supported on this platform.&quot;, signalName);</span>
+<span class="fc" id="L48">        }</span>
+<span class="fc" id="L49">    }</span>
 
     protected void onSignal(String signalName) {
-<span class="fc bfc" id="L51" title="All 4 branches covered.">        switch (signalName) {</span>
+<span class="fc bfc" id="L52" title="All 5 branches covered.">        switch (signalName) {</span>
             case &quot;INT&quot;, &quot;TERM&quot;, &quot;QUIT&quot; -&gt; {
-<span class="fc" id="L53">                logger.info(&quot;{} received: Graceful shutdown initiated.&quot;, signalName);</span>
-<span class="fc" id="L54">                shutdownApplication();</span>
-<span class="fc" id="L55">            }</span>
-<span class="fc" id="L56">            case &quot;HUP&quot; -&gt; logger.info(&quot;SIGHUP received: No-op (possible future reload trigger).&quot;);</span>
-<span class="fc" id="L57">            case &quot;USR1&quot;, &quot;USR2&quot; -&gt; logger.info(&quot;SIG{} received: User-defined action (currently no-op).&quot;, signalName);</span>
-<span class="fc" id="L58">            default -&gt; logger.warn(&quot;Unknown signal {} received. No action taken.&quot;, signalName);</span>
+<span class="fc" id="L54">                logger.info(&quot;{} received: Graceful shutdown initiated.&quot;, signalName);</span>
+<span class="fc" id="L55">                shutdownApplication();</span>
+<span class="fc" id="L56">            }</span>
+<span class="fc" id="L57">            case &quot;HUP&quot; -&gt; logger.info(&quot;SIGHUP received: No-op (possible future reload trigger).&quot;);</span>
+<span class="fc" id="L58">            case &quot;USR1&quot; -&gt; logHeapUsage();</span>
+<span class="fc" id="L59">            case &quot;USR2&quot; -&gt; logThreadDump();</span>
+<span class="fc" id="L60">            default -&gt; logger.warn(&quot;Unknown signal {} received. No action taken.&quot;, signalName);</span>
         }
-<span class="fc" id="L60">    }</span>
+<span class="fc" id="L62">    }</span>
+
+    private void logHeapUsage() {
+<span class="fc" id="L65">        Runtime runtime = Runtime.getRuntime();</span>
+<span class="fc" id="L66">        long usedMemory = runtime.totalMemory() - runtime.freeMemory();</span>
+<span class="fc" id="L67">        long maxMemory = runtime.maxMemory();</span>
+<span class="fc" id="L68">        logger.info(&quot;SIGUSR1 received: Heap Usage - Used: {} MB, Max: {} MB&quot;,</span>
+<span class="fc" id="L69">                usedMemory / (1024 * 1024),</span>
+<span class="fc" id="L70">                maxMemory / (1024 * 1024));</span>
+<span class="fc" id="L71">    }</span>
+
+    private void logThreadDump() {
+<span class="fc" id="L74">        logger.info(&quot;SIGUSR2 received: Capturing thread dump...&quot;);</span>
+<span class="fc" id="L75">        Map&lt;Thread, StackTraceElement[]&gt; allThreads = Thread.getAllStackTraces();</span>
+<span class="fc bfc" id="L76" title="All 2 branches covered.">        for (Map.Entry&lt;Thread, StackTraceElement[]&gt; entry : allThreads.entrySet()) {</span>
+<span class="fc" id="L77">            Thread thread = entry.getKey();</span>
+<span class="fc" id="L78">            logger.info(&quot;Thread: {} (state: {})&quot;, thread.getName(), thread.getState());</span>
+<span class="fc bfc" id="L79" title="All 2 branches covered.">            for (StackTraceElement element : entry.getValue()) {</span>
+<span class="fc" id="L80">                logger.info(&quot;    at {}&quot;, element);</span>
+            }
+<span class="fc" id="L82">        }</span>
+<span class="fc" id="L83">    }</span>
 
     protected void shutdownApplication() {
-<span class="nc" id="L63">        logger.info(&quot;Shutting down application now...&quot;);</span>
-<span class="nc" id="L64">        shutdownHook.run();  // Replaceable in test</span>
-<span class="nc" id="L65">    }</span>
+<span class="nc" id="L86">        logger.info(&quot;Shutting down application now...&quot;);</span>
+<span class="nc" id="L87">        shutdownHook.run();  // Replaceable in test</span>
+<span class="nc" id="L88">    }</span>
 
     @PreDestroy
     public void onShutdown() {
-<span class="fc" id="L69">        logger.info(&quot;Application shutdown triggered via @PreDestroy hook.&quot;);</span>
-<span class="fc" id="L70">    }</span>
+<span class="fc" id="L92">        logger.info(&quot;Application shutdown triggered via @PreDestroy hook.&quot;);</span>
+<span class="fc" id="L93">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
