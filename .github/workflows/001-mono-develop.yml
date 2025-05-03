@@ -81,6 +81,8 @@ jobs:
     name: Docker Build and Push
     runs-on: ubuntu-latest
     needs: woke
+    env:
+      SHORT_HASH: ${{ needs.build-test.outputs.short_hash }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -95,25 +97,23 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Set Git Short Hash
-        id: vars
-        run: echo "SHORT_HASH=${{ needs.build-test.outputs.short_hash }}" >> "$GITHUB_OUTPUT"
-
       - name: Build Docker Image
         run: |
           JAR_FILE=oomlet-*.jar
           docker build \
             --build-arg JAR_FILE=${JAR_FILE} \
-            -t ghcr.io/${{ github.repository_owner }}/oomlet:develop-snapshot-${{ steps.vars.outputs.SHORT_HASH }} .
+            -t ghcr.io/${{ github.repository_owner }}/oomlet:develop-snapshot-$SHORT_HASH .
 
       - name: Push Docker Image
         run: |
-          docker push ghcr.io/${{ github.repository_owner }}/oomlet:develop-snapshot-${{ steps.vars.outputs.SHORT_HASH }}
+          docker push ghcr.io/${{ github.repository_owner }}/oomlet:develop-snapshot-$SHORT_HASH
 
   helm:
     name: Helm Package and Upload
     runs-on: ubuntu-latest
     needs: build-test
+    env:
+      SHORT_HASH: ${{ needs.build-test.outputs.short_hash }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -121,13 +121,9 @@ jobs:
       - name: Lint Helm Chart
         run: helm lint helm
 
-      - name: Set Git Short Hash
-        id: vars
-        run: echo "SHORT_HASH=${{ needs.build-test.outputs.short_hash }}" >> "$GITHUB_OUTPUT"
-
       - name: Package Helm Chart
         run: |
-          helm package helm --version "0.1.0-dev.${{ steps.vars.outputs.SHORT_HASH }}"
+          helm package helm --version "0.1.0+build.$SHORT_HASH"
           mkdir -p helm-charts
           mv oomlet-*.tgz helm-charts/
 

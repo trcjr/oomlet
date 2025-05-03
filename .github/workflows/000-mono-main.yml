@@ -80,11 +80,14 @@ jobs:
 
       - name: Set Git Short Hash
         id: vars
-        run: echo "short_hash=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+        run: |
+          SHORT_HASH=$(git rev-parse --short HEAD)
+          echo "SHORT_HASH=$SHORT_HASH" >> "$GITHUB_ENV"
+
 
       - name: Package Helm Chart
         run: |
-          helm package helm --version "0.1.0-dev.${{ steps.vars.outputs.short_hash }}"
+          helm package helm --version "0.1.0-dev.${{ env.SHORT_HASH }}"
           mkdir -p helm-charts
           mv oomlet-*.tgz helm-charts/
 
