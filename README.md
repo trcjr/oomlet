@@ -246,6 +246,14 @@ coverage:
         threshold: 1%
 ```
 
+### 📜 Workflow Rules
+
+All GitHub Actions workflows in this project follow strict rules for consistency and reliability. This includes:
+
+- ✅ Git short hashes must be set using `git rev-parse --short HEAD` and passed via `$GITHUB_OUTPUT`
+- ✅ Helm chart versions must be valid [SemVer](https://semver.org) using the `-dev.<short_hash>` format
+- ✅ CI/CD steps are explicitly structured to avoid flakiness and ensure reproducibility
+
 ---
 
 ## 🚦 Signal Handling

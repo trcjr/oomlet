@@ -123,7 +123,7 @@ jobs:
 
       - name: Package Helm Chart
         run: |
-          helm package helm --version "0.1.0+build.$SHORT_HASH"
+          helm package helm --version "0.1.0-dev.${SHORT_HASH}"
           mkdir -p helm-charts
           mv oomlet-*.tgz helm-charts/
 
