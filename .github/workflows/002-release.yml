@@ -46,6 +46,17 @@ jobs:
       - name: Build and Verify
         run: ./mvnw clean verify
 
+      - name: Rename JAR to include version
+        run: |
+          mv target/oomlet-${{ steps.vars.outputs.RELEASE_VERSION }}.jar target/oomlet.jar
+          mv target/oomlet.jar target/oomlet-${{ steps.vars.outputs.RELEASE_VERSION }}.jar
+
+      - name: Collect Coverage Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: target/site/jacoco/jacoco.xml
+
       - name: Build and Push Docker Image
         run: |
           IMAGE_VERSION=ghcr.io/${{ github.repository }}:${{ steps.vars.outputs.RELEASE_VERSION }}
@@ -94,6 +105,22 @@ jobs:
           cat CHANGELOG.md >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
+      - name: Generate Distributable ZIP
+        run: |
+          mkdir -p release-bundle
+          cp target/oomlet-${{ steps.vars.outputs.RELEASE_VERSION }}.jar release-bundle/
+          cp release-assets/oomlet-${{ steps.vars.outputs.RELEASE_VERSION }}.tgz release-bundle/
+          cp CHANGELOG.md release-bundle/
+          cd release-bundle
+          zip ../release-assets/oomlet-${{ steps.vars.outputs.RELEASE_VERSION }}-bundle.zip *
+
+      - name: Generate Checksums
+        run: |
+          cd release-assets
+          for file in *.jar *.tgz *.zip; do
+            sha256sum "$file" > "$file.sha256"
+          done
+
       - name: Upload GitHub Release
         uses: softprops/action-gh-release@v2
         with:
@@ -101,7 +128,9 @@ jobs:
           name: Release ${{ github.ref_name }}
           body: ${{ steps.changelog_content.outputs.body }}
           files: |
-            target/oomlet-*.jar
+            target/oomlet-${{ steps.vars.outputs.RELEASE_VERSION }}.jar
             release-assets/oomlet-${{ steps.vars.outputs.RELEASE_VERSION }}.tar.gz
             release-assets/oomlet-${{ steps.vars.outputs.RELEASE_VERSION }}.zip
             release-assets/oomlet-${{ steps.vars.outputs.RELEASE_VERSION }}.tgz
+            release-assets/oomlet-${{ steps.vars.outputs.RELEASE_VERSION }}-bundle.zip
+            release-assets/*.sha256
