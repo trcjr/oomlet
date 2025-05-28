@@ -1,0 +1,62 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-added-large-files
+      - id: check-merge-conflict
+      - id: check-case-conflict
+      - id: check-symlinks
+      - id: check-executables-have-shebangs
+
+  - repo: https://github.com/psf/black
+    rev: 24.3.0
+    hooks:
+      - id: black
+        language_version: python3
+
+  - repo: https://github.com/PyCQA/flake8
+    rev: 7.0.0
+    hooks:
+      - id: flake8
+
+  - repo: https://github.com/pre-commit/mirrors-eslint
+    rev: v8.56.0
+    hooks:
+      - id: eslint
+        files: \.js$|\.ts$|\.tsx$
+        require_serial: true
+
+
+  - repo: local
+    hooks:
+      - id: helm-lint
+        name: helm lint
+        entry: bash -c 'helm lint helm/ || exit 1'
+        language: system
+        types: [yaml]
+
+  - repo: https://github.com/rhysd/actionlint
+    rev: v1.6.26
+    hooks:
+      - id: actionlint
+
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.33.0
+    hooks:
+      - id: markdownlint
+        args: ["--disable", "MD013"]
+
+  - repo: local
+    hooks:
+      - id: shellcheck
+        name: shellcheck
+        entry: bash -c 'find . -name "*.sh" -exec shellcheck {} +'
+        language: system
+        types: [file]
+
+  - repo: https://github.com/crate-ci/typos
+    rev: v1.16.17
+    hooks:
+      - id: typos

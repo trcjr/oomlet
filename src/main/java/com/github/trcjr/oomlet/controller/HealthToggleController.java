@@ -26,5 +26,5 @@ public class HealthToggleController {
         healthToggleService.setHealthy(false);
         return "Health set to DOWN";
     }
-    
+
 }

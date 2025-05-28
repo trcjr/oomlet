@@ -21,6 +21,7 @@
 ---
 
 ## 📚 Table of Contents
+
 - [Quick Start](#-quick-start)
 - [API Endpoints](#-api-endpoints)
 - [Stress Testing Endpoints](#-stress-testing-endpoints)
@@ -179,7 +180,7 @@ docker build -t oomlet:latest .
 docker run -p 8080:8080 oomlet:latest
 ```
 
-✅ Designed to be liveness- and readiness-probe friendly.  
+✅ Designed to be liveness- and readiness-probe friendly.
 ✅ Docker image built for minimal size and startup speed.
 
 ---
@@ -209,11 +210,11 @@ open target/site/jacoco/index.html
 
 View live coverage:
 
-- GitHub Pages: https://trcjr.github.io/oomlet  
+- GitHub Pages: https://trcjr.github.io/oomlet
 - Codecov: https://codecov.io/gh/trcjr/oomlet
 
-✅ Enforced 80%+ line coverage.  
-✅ Build fails if coverage threshold not met.  
+✅ Enforced 80%+ line coverage.
+✅ Build fails if coverage threshold not met.
 ✅ CI/CD runs on each push via GitHub Actions.
 
 ### 🔒 Coverage Gate
@@ -309,5 +310,5 @@ MIT — see [LICENSE](./LICENSE)
 
 ## ✍️ Contributing
 
-We welcome PRs and issues. Start with [CONTRIBUTING.md](./CONTRIBUTING.md)  
+We welcome PRs and issues. Start with [CONTRIBUTING.md](./CONTRIBUTING.md)
 Look for issues labeled `good first issue` to help out!

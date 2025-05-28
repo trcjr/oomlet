@@ -53,7 +53,7 @@ public class FileHandleController {
         response.put("successfullyOpened", successCount);
         response.put("failed", count - successCount);
 
-        logger.info("File handle open request completed: requested={}, success={}, failed={}", 
+        logger.info("File handle open request completed: requested={}, success={}, failed={}",
                 count, successCount, count - successCount);
 
         return response;
