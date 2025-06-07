@@ -1,6 +1,6 @@
 # 🥚 OOMlet
 
-![Build Status](https://github.com/trcjr/oomlet/actions/workflows/000-mono-workflow.yml/badge.svg)
+![Build Status](https://github.com/trcjr/oomlet/actions/workflows/000-mono-main.yml/badge.svg)
 ![Develop Snapshot](https://github.com/trcjr/oomlet/actions/workflows/001-mono-develop.yml/badge.svg?branch=develop)
 ![Security Scan](https://github.com/trcjr/oomlet/actions/workflows/security-scan.yml/badge.svg)
 
