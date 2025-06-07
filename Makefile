@@ -14,7 +14,7 @@ run: build
 	java -jar $(JAR_FILE)
 
 ## Build a Docker image using a simple Dockerfile
-docker-build: build
+docker-build:
 	docker build -t $(DOCKER_IMAGE) . --load
 
 ## Run the Docker container
