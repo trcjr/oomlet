@@ -10,6 +10,8 @@ jobs:
   maven-audit:
     name: Dependency Check
     runs-on: ubuntu-latest
+    env:
+      OWASP_DC_CACHE: ${{ github.workspace }}/.dependency-check
 
     steps:
       - name: Checkout code
@@ -26,37 +28,46 @@ jobs:
         with:
           dotnet-version: 6.0.x
 
+      - name: Cache OWASP Dependency-Check
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.OWASP_DC_CACHE }}
+          key: ${{ runner.os }}-owasp-depcheck
+
       - name: Install OWASP Dependency-Check
         run: |
           mkdir -p dependency-check
           wget https://github.com/jeremylong/DependencyCheck/releases/download/v8.4.0/dependency-check-8.4.0-release.zip -O dc.zip
           unzip -q dc.zip -d dependency-check
           ls dependency-check
-          ./dependency-check/dependency-check/bin/dependency-check.sh --project "oomlet" --scan . --format HTML --out dependency-check-report.html
+          ./dependency-check/dependency-check/bin/dependency-check.sh --project "oomlet" --scan . --format HTML --out reports/html
 
       - name: Export OWASP DC cache path
         run: echo "OWASP_DC_CACHE=/github/home/.dependency-check" >> $GITHUB_ENV
 
       - name: Also output SARIF report
         run: |
-          ./dependency-check/dependency-check/bin/dependency-check.sh --project "oomlet" --scan . --format SARIF --out dependency-check-report.sarif
+          ./dependency-check/dependency-check/bin/dependency-check.sh --project "oomlet" --scan . --format SARIF --out reports/sarif
 
       - name: Upload SARIF report as artifact
         uses: actions/upload-artifact@v4
         with:
           name: dependency-check-report-sarif
-          path: dependency-check-report.sarif
+          path: reports/sarif/dependency-check-report.sarif
 
       - name: Upload SARIF to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v3
         with:
-          sarif_file: dependency-check-report.sarif
+          sarif_file: reports/sarif/dependency-check-report.sarif
 
       - name: Upload security report HTML
         uses: actions/upload-artifact@v4
         with:
           name: dependency-check-report
-          path: dependency-check-report.html
+          path: reports/html/dependency-check-report.html
+
+      - name: Post summary
+        run: echo "Security scan completed. See uploaded artifacts for results." >> $GITHUB_STEP_SUMMARY
 
   docker-audit:
     name: Docker Image Scan
@@ -86,3 +97,6 @@ jobs:
           image-ref: ghcr.io/${{ github.repository_owner }}/oomlet:0.1.0-dev.${{ steps.vars.outputs.short_hash }}
           severity: HIGH,CRITICAL
           exit-code: 1
+
+      - name: Post summary
+        run: echo "Security scan completed. See uploaded artifacts for results." >> $GITHUB_STEP_SUMMARY
