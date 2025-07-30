@@ -272,6 +272,45 @@ Gracefully shuts down or logs custom signals.
 
 ---
 
+## 🔒 Security
+
+This project uses a comprehensive security approach with multiple layers of protection:
+
+### 🛡️ Dependency Management
+
+- **Dependabot**: Automated dependency updates with security scanning
+  - Weekly updates for Maven, GitHub Actions, and Docker dependencies
+  - Daily security updates for critical vulnerabilities
+  - Automatic PR creation with proper labeling and review assignment
+  - Groups minor and patch updates to reduce PR noise
+
+### 🔍 Security Scanning
+
+- **CodeQL Analysis**: Static code analysis for Java vulnerabilities
+- **Trivy Container Scanning**: Docker image vulnerability scanning
+- **GitHub Security Advisories**: Integration with GitHub's security database
+
+### 📋 Security Workflow
+
+The security scan workflow runs:
+- **Scheduled**: Every Sunday at midnight UTC
+- **Manual**: Via workflow dispatch
+- **Docker Scanning**: Container image vulnerability analysis
+- **Code Scanning**: Static analysis with CodeQL
+
+### 🚨 Security Alerts
+
+- GitHub Security tab integration
+- Dependabot alerts for vulnerable dependencies
+- CodeQL alerts for code vulnerabilities
+- Container scanning alerts for image vulnerabilities
+
+### 📊 Security Status
+
+![Security Scan](https://github.com/trcjr/oomlet/actions/workflows/security-scan.yml/badge.svg)
+
+---
+
 ## 🗺 Architecture Overview
 
 ```plaintext

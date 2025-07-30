@@ -1,0 +1,85 @@
+name: Test Security Scan
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test-dependency-check:
+    name: Test Dependency Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Setup .NET 6.0
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 6.0.x
+
+      - name: Install OWASP Dependency-Check
+        run: |
+          mkdir -p dependency-check
+          wget https://github.com/jeremylong/DependencyCheck/releases/download/v9.0.10/dependency-check-9.0.10-release.zip -O dc.zip
+          unzip -q dc.zip -d dependency-check
+          ls dependency-check
+          chmod +x ./dependency-check/dependency-check/bin/dependency-check.sh
+
+      - name: Export OWASP DC cache path
+        run: echo "OWASP_DC_CACHE=/github/home/.dependency-check" >> "$GITHUB_ENV"
+
+      - name: Run OWASP Dependency Check (with NVD API key)
+        env:
+          NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
+        run: |
+          ./dependency-check/dependency-check/bin/dependency-check.sh \
+            --project "oomlet" \
+            --scan . \
+            --format HTML \
+            --out dependency-check-report.html \
+            --failOnCVSS 8 \
+            --enableRetired \
+            --log dependency-check.log \
+            --nvdApiKey "$NVD_API_KEY"
+
+      - name: Also output SARIF report
+        env:
+          NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
+        run: |
+          ./dependency-check/dependency-check/bin/dependency-check.sh \
+            --project "oomlet" \
+            --scan . \
+            --format SARIF \
+            --out dependency-check-report.sarif \
+            --failOnCVSS 8 \
+            --enableRetired \
+            --nvdApiKey "$NVD_API_KEY"
+
+      - name: Upload SARIF report as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-check-report-sarif
+          path: dependency-check-report.sarif
+
+      - name: Upload SARIF to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: dependency-check-report.sarif
+
+      - name: Upload security report HTML
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-check-report
+          path: dependency-check-report.html
+
+      - name: Upload dependency check log
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-check-log
+          path: dependency-check.log
