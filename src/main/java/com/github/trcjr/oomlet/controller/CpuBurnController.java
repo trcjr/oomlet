@@ -2,20 +2,26 @@ package com.github.trcjr.oomlet.controller;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.github.trcjr.oomlet.dto.CpuBurnResponse;
+import com.github.trcjr.oomlet.service.CpuBurnService;
 
 @RestController
 public class CpuBurnController {
 
     private static final Logger logger = LoggerFactory.getLogger(CpuBurnController.class);
+
+    private final CpuBurnService cpuBurnService;
+
+    @Autowired
+    public CpuBurnController(CpuBurnService cpuBurnService) {
+        this.cpuBurnService = cpuBurnService;
+    }
 
     @GetMapping("/api/burn-cpu")
     public ResponseEntity<CpuBurnResponse> burnCpu(
@@ -24,35 +30,12 @@ public class CpuBurnController {
 
         logger.info("Received CPU burn request: millis={} threads={}", millis, threads);
 
-        long endTime = System.currentTimeMillis() + millis;
-        List<Thread> workers = new ArrayList<>();
+        CpuBurnResponse response = cpuBurnService.burnCpu(millis, threads);
 
-        for (int i = 0; i < threads; i++) {
-            Thread worker = new Thread(() -> {
-                while (System.currentTimeMillis() < endTime) {
-                    double x = Math.random() * Math.random(); // Do something to waste CPU
-                }
-            });
-            worker.start();
-            workers.add(worker);
+        if ("interrupted".equals(response.getStatus())) {
+            return ResponseEntity.status(500).body(response);
         }
 
-        // Optionally wait for all threads to finish
-        for (Thread worker : workers) {
-            try {
-                worker.join();
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                logger.error("CPU burn interrupted", e);
-                return ResponseEntity.status(500).body(
-                    new CpuBurnResponse(millis, threads, "interrupted")
-                );
-            }
-        }
-
-        logger.info("CPU burn complete");
-
-        CpuBurnResponse response = new CpuBurnResponse(millis, threads, "completed");
         return ResponseEntity.ok(response);
     }
 }
