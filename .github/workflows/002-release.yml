@@ -96,9 +96,11 @@ jobs:
       - name: Read Changelog Content
         id: changelog_content
         run: |
-          echo "body<<EOF" >> $GITHUB_OUTPUT
-          cat CHANGELOG.md >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          {
+            echo "body<<EOF"
+            cat CHANGELOG.md
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Copy Versioned JAR to release-assets
         run: |
@@ -112,12 +114,12 @@ jobs:
           cp release-assets/oomlet-${{ steps.vars.outputs.RELEASE_VERSION }}.tgz release-bundle/
           cp CHANGELOG.md release-bundle/
           cd release-bundle
-          zip ../release-assets/oomlet-${{ steps.vars.outputs.RELEASE_VERSION }}-bundle.zip *
+          zip ../release-assets/oomlet-${{ steps.vars.outputs.RELEASE_VERSION }}-bundle.zip ./*
 
       - name: Generate Checksums
         run: |
           cd release-assets
-          for file in *.jar *.tgz *.zip; do
+          for file in ./*.jar ./*.tgz ./*.zip; do
             sha256sum "$file" > "$file.sha256"
           done
 
