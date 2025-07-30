@@ -1,6 +1,6 @@
 # 🥚 OOMlet
 
-![Build Status](https://github.com/trcjr/oomlet/actions/workflows/000-mono-workflow.yml/badge.svg)
+![Build Status](https://github.com/trcjr/oomlet/actions/workflows/000-mono-main.yml/badge.svg)
 ![Develop Snapshot](https://github.com/trcjr/oomlet/actions/workflows/001-mono-develop.yml/badge.svg?branch=develop)
 ![Security Scan](https://github.com/trcjr/oomlet/actions/workflows/security-scan.yml/badge.svg)
 
@@ -21,6 +21,7 @@
 ---
 
 ## 📚 Table of Contents
+
 - [Quick Start](#-quick-start)
 - [API Endpoints](#-api-endpoints)
 - [Stress Testing Endpoints](#-stress-testing-endpoints)
@@ -179,7 +180,7 @@ docker build -t oomlet:latest .
 docker run -p 8080:8080 oomlet:latest
 ```
 
-✅ Designed to be liveness- and readiness-probe friendly.  
+✅ Designed to be liveness- and readiness-probe friendly.
 ✅ Docker image built for minimal size and startup speed.
 
 ---
@@ -209,11 +210,11 @@ open target/site/jacoco/index.html
 
 View live coverage:
 
-- GitHub Pages: https://trcjr.github.io/oomlet  
+- GitHub Pages: https://trcjr.github.io/oomlet
 - Codecov: https://codecov.io/gh/trcjr/oomlet
 
-✅ Enforced 80%+ line coverage.  
-✅ Build fails if coverage threshold not met.  
+✅ Enforced 80%+ line coverage.
+✅ Build fails if coverage threshold not met.
 ✅ CI/CD runs on each push via GitHub Actions.
 
 ### 🔒 Coverage Gate
@@ -271,6 +272,45 @@ Gracefully shuts down or logs custom signals.
 
 ---
 
+## 🔒 Security
+
+This project uses a comprehensive security approach with multiple layers of protection:
+
+### 🛡️ Dependency Management
+
+- **Dependabot**: Automated dependency updates with security scanning
+  - Weekly updates for Maven, GitHub Actions, and Docker dependencies
+  - Daily security updates for critical vulnerabilities
+  - Automatic PR creation with proper labeling and review assignment
+  - Groups minor and patch updates to reduce PR noise
+
+### 🔍 Security Scanning
+
+- **CodeQL Analysis**: Static code analysis for Java vulnerabilities
+- **Trivy Container Scanning**: Docker image vulnerability scanning
+- **GitHub Security Advisories**: Integration with GitHub's security database
+
+### 📋 Security Workflow
+
+The security scan workflow runs:
+- **Scheduled**: Every Sunday at midnight UTC
+- **Manual**: Via workflow dispatch
+- **Docker Scanning**: Container image vulnerability analysis
+- **Code Scanning**: Static analysis with CodeQL
+
+### 🚨 Security Alerts
+
+- GitHub Security tab integration
+- Dependabot alerts for vulnerable dependencies
+- CodeQL alerts for code vulnerabilities
+- Container scanning alerts for image vulnerabilities
+
+### 📊 Security Status
+
+![Security Scan](https://github.com/trcjr/oomlet/actions/workflows/security-scan.yml/badge.svg)
+
+---
+
 ## 🗺 Architecture Overview
 
 ```plaintext
@@ -309,5 +349,5 @@ MIT — see [LICENSE](./LICENSE)
 
 ## ✍️ Contributing
 
-We welcome PRs and issues. Start with [CONTRIBUTING.md](./CONTRIBUTING.md)  
+We welcome PRs and issues. Start with [CONTRIBUTING.md](./CONTRIBUTING.md)
 Look for issues labeled `good first issue` to help out!

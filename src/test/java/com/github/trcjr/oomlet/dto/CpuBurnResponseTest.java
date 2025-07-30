@@ -29,7 +29,10 @@ class CpuBurnResponseTest {
 
     @Test
     void testUnusedConstructorForCoverage() {
-        CpuBurnResponse response = new CpuBurnResponse(1000L, 2, 500L, 1);
+        CpuBurnResponse response = new CpuBurnResponse(1000L, 2, "Test");
         assertNotNull(response);
+        assertEquals(1000L, response.getRequestedMillis());
+        assertEquals(2, response.getRequestedThreads());
+        assertEquals("Test", response.getStatus());
     }
 }

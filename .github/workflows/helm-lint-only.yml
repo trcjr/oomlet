@@ -18,7 +18,7 @@ jobs:
       - name: Set Git Short Hash
         id: vars
         run: |
-          echo "SHORT_HASH=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+          echo "SHORT_HASH=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
 
       - name: Debug Git Short Hash
         run: echo "SHORT_HASH=${{ steps.vars.outputs.SHORT_HASH }}"

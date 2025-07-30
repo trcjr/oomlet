@@ -1,6 +1,7 @@
 # 🚀 Pull Request Template
 
 ## 📋 Description
+
 Please describe what this PR changes, adds, or fixes.
 
 ---
@@ -15,4 +16,5 @@ Please describe what this PR changes, adds, or fixes.
 ---
 
 ## 🛠 Related Issues / PRs
+
 (If this PR fixes an issue, link it here: `Closes #123`)

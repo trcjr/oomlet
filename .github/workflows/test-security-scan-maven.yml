@@ -1,0 +1,60 @@
+name: Test Security Scan (Maven Plugin)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test-dependency-check-maven:
+    name: Test Dependency Check (Maven)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Setup .NET 6.0
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 6.0.x
+
+      - name: Run OWASP Dependency Check via Maven
+        env:
+          NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
+        run: |
+          ./mvnw org.owasp:dependency-check-maven:9.0.10:check \
+            -Dformat=HTML \
+            -Dformat=JSON \
+            -Dformat=SARIF \
+            -DfailOnCVSS=8 \
+            -DretireJsUrl=https://raw.githubusercontent.com/RetireJS/retire.js/master/repository/jsrepository.json \
+            -DlogFile=target/dependency-check/dependency-check.log \
+            -DnvdApiKey="$NVD_API_KEY"
+
+      - name: Upload SARIF report as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-check-report-sarif
+          path: target/dependency-check/dependency-check-report.sarif
+
+      - name: Upload SARIF to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: target/dependency-check/dependency-check-report.sarif
+
+      - name: Upload security report HTML
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-check-report
+          path: target/dependency-check/dependency-check-report.html
+
+      - name: Upload dependency check log
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-check-log
+          path: target/dependency-check/dependency-check.log
