@@ -25,8 +25,8 @@ import java.util.Map;
 <span class="fc" id="L25">                int allocationSize = (int) Math.min(blockSize, bytes - allocated);</span>
 <span class="fc" id="L26">                allocations.add(new byte[allocationSize]);</span>
 <span class="fc" id="L27">                allocated += allocationSize;</span>
-<span class="pc bpc" id="L28" title="1 of 2 branches missed.">                if (allocated % (blockSize * 10) == 0) {</span>
-<span class="nc" id="L29">                    logger.info(&quot;Successfully allocated {} bytes&quot;, allocated);</span>
+<span class="fc bfc" id="L28" title="All 2 branches covered.">                if (allocated % (blockSize * 10) == 0) {</span>
+<span class="fc" id="L29">                    logger.info(&quot;Successfully allocated {} bytes&quot;, allocated);</span>
                 }
 <span class="fc" id="L31">            }</span>
 <span class="nc" id="L32">        } catch (OutOfMemoryError e) {</span>

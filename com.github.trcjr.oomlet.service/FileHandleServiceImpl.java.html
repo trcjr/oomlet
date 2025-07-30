@@ -31,9 +31,9 @@ import java.util.Map;
 <span class="fc" id="L31">                    FileInputStream fis = new FileInputStream(tempFile);</span>
 <span class="fc" id="L32">                    openStreams.add(fis);</span>
 <span class="fc" id="L33">                    successCount++;</span>
-<span class="nc" id="L34">                } catch (IOException e) {</span>
-<span class="nc" id="L35">                    logger.warn(&quot;Failed to open file handle at index {}: {}&quot;, i, e.getMessage());</span>
-<span class="nc" id="L36">                    break; // Stop trying after first failure (optional, can continue if you want)</span>
+<span class="fc" id="L34">                } catch (IOException e) {</span>
+<span class="fc" id="L35">                    logger.warn(&quot;Failed to open file handle at index {}: {}&quot;, i, e.getMessage());</span>
+<span class="fc" id="L36">                    break; // Stop trying after first failure (optional, can continue if you want)</span>
 <span class="fc" id="L37">                }</span>
             }
         } finally {
