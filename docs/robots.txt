@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://trcjr.github.io/oomlet/sitemap.xml
+
+# Disallow coverage reports from search engines (optional)
+# Disallow: /jacoco/

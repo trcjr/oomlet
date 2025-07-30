@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🥚 OOMlet - Chaos-Friendly QA and Debugging Tool</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 3rem;
+        }
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        .content {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 2rem;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        .card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 1.5rem;
+            border-left: 4px solid #667eea;
+            transition: transform 0.2s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        .card h3 {
+            color: #667eea;
+            margin-top: 0;
+        }
+        .btn {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background 0.2s ease;
+            margin: 0.5rem 0.5rem 0.5rem 0;
+        }
+        .btn:hover {
+            background: #5a6fd8;
+        }
+        .badge {
+            display: inline-block;
+            background: #28a745;
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 3px;
+            font-size: 0.8rem;
+            margin-left: 0.5rem;
+        }
+        .coverage-section {
+            background: #e8f5e8;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+        .footer {
+            text-align: center;
+            color: white;
+            margin-top: 3rem;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🥚 OOMlet</h1>
+            <p>Chaos-Friendly QA and Debugging Spring Boot Application</p>
+            <p><em>Crack limits. Scramble resources. Cook up resilience.</em></p>
+        </div>
+
+        <div class="content">
+            <h2>🚀 About OOMlet</h2>
+            <p>OOMlet is a lightweight, chaos-friendly QA and debugging Spring Boot application designed to help you <strong>test</strong>, <strong>stress</strong>, and <strong>harden</strong> your systems.</p>
+
+            <div class="grid">
+                <div class="card">
+                    <h3>🧪 Testing Features</h3>
+                    <ul>
+                        <li>Dynamic health check toggling</li>
+                        <li>Memory and file handle stress testing</li>
+                        <li>CPU load simulation</li>
+                        <li>Response latency simulation</li>
+                        <li>Application crash simulation</li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <h3>🔧 Development Tools</h3>
+                    <ul>
+                        <li>Runtime log level adjustment</li>
+                        <li>Graceful OS signal handling</li>
+                        <li>Outbound connectivity testing</li>
+                        <li>Full Actuator integration</li>
+                        <li>Docker & Kubernetes support</li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <h3>📊 Quality Assurance</h3>
+                    <ul>
+                        <li>80%+ code coverage enforcement</li>
+                        <li>Comprehensive test suite</li>
+                        <li>Security scanning integration</li>
+                        <li>Automated CI/CD pipelines</li>
+                        <li>Helm charts for deployment</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="content">
+            <h2>📊 Code Coverage Reports</h2>
+            <div class="coverage-section">
+                <p><strong>Current Coverage Status:</strong> <span class="badge">80%+ Enforced</span></p>
+                <p>View detailed coverage reports and metrics:</p>
+                <a href="jacoco/index.html" class="btn">📈 JaCoCo Coverage Report</a>
+                <a href="https://codecov.io/gh/trcjr/oomlet" class="btn">📊 Codecov Dashboard</a>
+            </div>
+        </div>
+
+        <div class="content">
+            <h2>🔗 Quick Links</h2>
+            <a href="https://github.com/trcjr/oomlet" class="btn">📁 GitHub Repository</a>
+            <a href="https://github.com/trcjr/oomlet/blob/main/README.md" class="btn">📖 Full Documentation</a>
+            <a href="https://github.com/trcjr/oomlet/actions" class="btn">⚡ CI/CD Status</a>
+            <a href="https://github.com/trcjr/oomlet/issues" class="btn">🐛 Issues & Bugs</a>
+        </div>
+
+        <div class="content">
+            <h2>🚀 Getting Started</h2>
+            <p>Ready to start testing with OOMlet? Here's how to get started:</p>
+
+            <h3>Quick Start</h3>
+            <pre><code># Clone the repository
+git clone https://github.com/trcjr/oomlet.git
+cd oomlet
+
+# Build the application
+./mvnw clean package
+
+# Run the application
+java -jar target/oomlet-0.0.8.jar</code></pre>
+
+            <h3>Docker Quick Start</h3>
+            <pre><code># Build and run with Docker
+docker build -t oomlet:latest .
+docker run -p 8080:8080 oomlet:latest</code></pre>
+
+            <h3>Kubernetes with Kind</h3>
+            <pre><code># One-button setup
+./scripts/setup-kind.sh
+
+# Test the deployment
+curl http://oomlet.local/actuator/health</code></pre>
+        </div>
+
+        <div class="footer">
+            <p>Made with ❤️ by the OOMlet team</p>
+            <p>MIT License - <a href="https://github.com/trcjr/oomlet/blob/main/LICENSE" style="color: white;">View License</a></p>
+        </div>
+    </div>
+</body>
+</html>
