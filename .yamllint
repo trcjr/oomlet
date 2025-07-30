@@ -1,0 +1,22 @@
+extends: default
+
+rules:
+  # Disable line length for GitHub Actions (they can be long)
+  line-length: disable
+
+  # Allow document start without ---
+  document-start: disable
+
+  # Allow trailing spaces in some contexts
+  trailing-spaces: disable
+
+  # Allow comments anywhere
+  comments-indentation: disable
+
+  # Allow empty lines at end of file
+  empty-lines: disable
+
+  # Allow indentation with spaces (GitHub Actions standard)
+  indentation:
+    spaces: 2
+    indent-sequences: true
