@@ -1,11 +1,10 @@
 version: 2
 updates:
-  # Enable version updates for Maven dependencies
+  # Enable version updates for Maven dependencies (including security updates)
   - package-ecosystem: "maven"
     directory: "/"
     schedule:
-      interval: "weekly"
-      day: "monday"
+      interval: "daily"
       time: "09:00"
       timezone: "UTC"
     open-pull-requests-limit: 10
@@ -27,6 +26,10 @@ updates:
         update-types:
           - "minor"
           - "patch"
+    # Only create PRs for minor and patch updates (including security)
+    update-types:
+      - "minor"
+      - "patch"
 
   # Enable version updates for GitHub Actions
   - package-ecosystem: "github-actions"
@@ -67,32 +70,3 @@ updates:
     labels:
       - "dependencies"
       - "docker"
-
-  # Enable security updates for Maven dependencies
-  - package-ecosystem: "maven"
-    directory: "/"
-    schedule:
-      interval: "daily"
-      time: "09:00"
-      timezone: "UTC"
-    open-pull-requests-limit: 10
-    reviewers:
-      - "trcjr"
-    assignees:
-      - "trcjr"
-    commit-message:
-      prefix: "security"
-      include: "scope"
-    labels:
-      - "dependencies"
-      - "security"
-      - "maven"
-    # Only create PRs for security updates
-    update-types:
-      - "minor"
-      - "patch"
-    # Ignore major version updates for security
-    ignore:
-      - dependency-name: "*"
-        update-types:
-          - "version-update:semver-major"
