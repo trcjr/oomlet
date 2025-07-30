@@ -195,6 +195,13 @@ OOMlet includes comprehensive Kind cluster configuration for easy local Kubernet
 
 #### Quick Start with Kind
 
+**Option 1: One-Button Setup (Recommended)**
+```bash
+./scripts/setup-kind.sh
+```
+
+**Option 2: Manual Setup**
+
 1. **Create Kind cluster with ingress support**:
    ```bash
    kind create cluster --name kind --config kind-config.yaml
@@ -226,6 +233,11 @@ OOMlet includes comprehensive Kind cluster configuration for easy local Kubernet
 - **`kind-config.yaml`**: Kind cluster configuration with port mappings for ingress
 - **`helm/values-kind.yaml`**: Helm values optimized for Kind deployment with ingress enabled
 
+#### Scripts
+
+- **`scripts/setup-kind.sh`**: One-button setup script for complete Kind cluster and OOMlet deployment
+- **`scripts/cleanup-kind.sh`**: Cleanup script to remove cluster and DNS entries
+
 #### Testing OOM Scenarios
 
 With the Kind setup, you can easily test various failure scenarios:
@@ -246,9 +258,10 @@ curl "http://oomlet.local/api/open-files?count=100"
 
 #### Benefits of Kind Setup
 
+- ✅ **One-button setup** with `./scripts/setup-kind.sh`
 - ✅ **Direct ingress access** on `http://oomlet.local` (no port forwarding)
 - ✅ **Production-like environment** for testing Kubernetes features
-- ✅ **Easy cleanup**: `kind delete cluster --name kind`
+- ✅ **Easy cleanup**: `./scripts/cleanup-kind.sh`
 - ✅ **Automatic pod recovery** testing
 - ✅ **Load balancer behavior** simulation
 
