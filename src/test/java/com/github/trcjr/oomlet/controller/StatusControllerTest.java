@@ -91,4 +91,16 @@ class StatusControllerTest {
                 .andExpect(status().isInternalServerError())
                 .andExpect(content().string(containsString("Returning HTTP status: 500 due to interruption")));
     }
+
+    @Test
+    void testSetStatusHandlesOtherRuntimeException() throws Exception {
+        when(statusService.setStatus(200, 100))
+                .thenThrow(new RuntimeException("Some other runtime error"));
+
+        // The controller re-throws RuntimeException, so Spring's error handling will return 500
+        mockMvc.perform(get("/api/status")
+                .param("code", "200")
+                .param("delayMillis", "100"))
+                .andExpect(status().isInternalServerError());
+    }
 }

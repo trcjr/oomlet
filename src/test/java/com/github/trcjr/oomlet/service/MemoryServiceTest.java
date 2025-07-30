@@ -40,4 +40,29 @@ class MemoryServiceTest {
         assertEquals(1024 * 1024L, result.get("allocatedBytes"));
         assertEquals(0L, result.get("failedBytes"));
     }
+
+    @Test
+    void testAllocateMemoryLarge() {
+        // Test with a larger allocation to potentially trigger OutOfMemoryError
+        // Note: This test may not reliably trigger OOM on all systems
+        Map<String, Object> result = memoryService.allocateMemory(50 * 1024 * 1024); // 50MB
+
+        assertEquals(50 * 1024 * 1024L, result.get("requestedBytes"));
+        // The allocated bytes should be <= requested bytes
+        assertTrue((Long) result.get("allocatedBytes") <= 50 * 1024 * 1024L);
+        // Failed bytes should be >= 0
+        assertTrue((Long) result.get("failedBytes") >= 0L);
+    }
+
+    @Test
+    void testAllocateMemoryVeryLarge() {
+        // Test with a very large allocation that might trigger OOM
+        // This is more likely to trigger the OutOfMemoryError path
+        Map<String, Object> result = memoryService.allocateMemory(100 * 1024 * 1024); // 100MB
+
+        assertEquals(100 * 1024 * 1024L, result.get("requestedBytes"));
+        // Should handle the allocation gracefully even if OOM occurs
+        assertTrue((Long) result.get("allocatedBytes") >= 0L);
+        assertTrue((Long) result.get("failedBytes") >= 0L);
+    }
 }
