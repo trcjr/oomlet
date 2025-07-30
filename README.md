@@ -299,6 +299,26 @@ View live coverage:
 - GitHub Pages: https://trcjr.github.io/oomlet
 - Codecov: https://codecov.io/gh/trcjr/oomlet
 
+### 🌐 GitHub Pages Site
+
+OOMlet includes a comprehensive GitHub Pages site with:
+
+- **Landing Page**: Beautiful homepage showcasing features and capabilities
+- **Coverage Reports**: Live JaCoCo coverage reports and metrics
+- **Documentation**: Easy access to project documentation
+- **Quick Links**: Direct access to repository, issues, and CI/CD status
+
+The site is automatically deployed via GitHub Actions and includes:
+- Responsive design that works on all devices
+- Real-time coverage status and badges
+- Integration with Codecov dashboard
+- Modern UI with hover effects and smooth transitions
+
+**Local Development**: Test the site locally using Python (no additional installation required):
+```bash
+./scripts/serve-docs-python.sh
+```
+
 ✅ Enforced 80%+ line coverage.
 ✅ Build fails if coverage threshold not met.
 ✅ CI/CD runs on each push via GitHub Actions.
