@@ -29,6 +29,7 @@
 - [Crash the Application](#-crash-the-application)
 - [Runtime Configuration](#-runtime-configuration)
 - [Docker and Kubernetes Support](#-docker-and-kubernetes-support)
+  - [Kind Cluster Setup](#-kind-cluster-setup-recommended-for-testing)
 - [Testing and Code Coverage](#-testing-and-code-coverage)
 - [Signal Handling](#-signal-handling)
 - [Architecture Overview](#-architecture-overview)
@@ -47,6 +48,8 @@
 - ✅ Full Actuator integration
 - ✅ Code coverage enforcement (80% minimum)
 - ✅ Built for local development, Docker, and Kubernetes
+- ✅ Kind cluster configuration with ingress support
+- ✅ Production-ready Helm charts with autoscaling
 
 ---
 
@@ -180,8 +183,78 @@ docker build -t oomlet:latest .
 docker run -p 8080:8080 oomlet:latest
 ```
 
+### 🐳 Kind Cluster Setup (Recommended for Testing)
+
+OOMlet includes comprehensive Kind cluster configuration for easy local Kubernetes testing with ingress support.
+
+#### Prerequisites
+
+- [Kind](https://kind.sigs.k8s.io/) installed
+- [kubectl](https://kubernetes.io/docs/tasks/tools/) configured
+- [Helm](https://helm.sh/) installed
+
+#### Quick Start with Kind
+
+1. **Create Kind cluster with ingress support**:
+   ```bash
+   kind create cluster --name kind --config kind-config.yaml
+   ```
+
+2. **Install NGINX Ingress Controller**:
+   ```bash
+   kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
+   kubectl wait --namespace ingress-nginx --for=condition=ready pod --selector=app.kubernetes.io/component=controller --timeout=120s
+   ```
+
+3. **Deploy OOMlet with ingress**:
+   ```bash
+   helm install oomlet ./helm -f helm/values-kind.yaml
+   ```
+
+4. **Add local DNS entry**:
+   ```bash
+   echo "127.0.0.1 oomlet.local" | sudo tee -a /etc/hosts
+   ```
+
+5. **Test the deployment**:
+   ```bash
+   curl http://oomlet.local/actuator/health
+   ```
+
+#### Configuration Files
+
+- **`kind-config.yaml`**: Kind cluster configuration with port mappings for ingress
+- **`helm/values-kind.yaml`**: Helm values optimized for Kind deployment with ingress enabled
+
+#### Testing OOM Scenarios
+
+With the Kind setup, you can easily test various failure scenarios:
+
+```bash
+# Test memory allocation (causes OutOfMemoryError)
+curl "http://oomlet.local/api/allocate-memory?bytes=2147483648"
+
+# Test application crash (simulates pod failure)
+curl -X POST "http://oomlet.local/api/crash?code=137"
+
+# Test CPU stress
+curl "http://oomlet.local/api/burn-cpu?millis=5000&threads=4"
+
+# Test file handle limits
+curl "http://oomlet.local/api/open-files?count=100"
+```
+
+#### Benefits of Kind Setup
+
+- ✅ **Direct ingress access** on `http://oomlet.local` (no port forwarding)
+- ✅ **Production-like environment** for testing Kubernetes features
+- ✅ **Easy cleanup**: `kind delete cluster --name kind`
+- ✅ **Automatic pod recovery** testing
+- ✅ **Load balancer behavior** simulation
+
 ✅ Designed to be liveness- and readiness-probe friendly.
 ✅ Docker image built for minimal size and startup speed.
+✅ Full Kubernetes ingress support with automatic failover.
 
 ---
 
