@@ -2,61 +2,29 @@
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import com.github.trcjr.oomlet.service.FileHandleService;
+
 import java.util.Map;
 
 @RestController
 @RequestMapping(&quot;/api&quot;)
-<span class="fc" id="L17">public class FileHandleController {</span>
+public class FileHandleController {
 
-<span class="fc" id="L19">    private static final Logger logger = LoggerFactory.getLogger(FileHandleController.class);</span>
+<span class="fc" id="L16">    private static final Logger logger = LoggerFactory.getLogger(FileHandleController.class);</span>
+
+    private final FileHandleService fileHandleService;
+
+    @Autowired
+<span class="fc" id="L21">    public FileHandleController(FileHandleService fileHandleService) {</span>
+<span class="fc" id="L22">        this.fileHandleService = fileHandleService;</span>
+<span class="fc" id="L23">    }</span>
 
     @GetMapping(&quot;/open-files&quot;)
     public Map&lt;String, Object&gt; openFiles(@RequestParam(name = &quot;count&quot;) int count) {
-<span class="fc" id="L23">        List&lt;FileInputStream&gt; openStreams = new ArrayList&lt;&gt;();</span>
-<span class="fc" id="L24">        int successCount = 0;</span>
-
-        try {
-<span class="fc bfc" id="L27" title="All 2 branches covered.">            for (int i = 0; i &lt; count; i++) {</span>
-                try {
-<span class="fc" id="L29">                    File tempFile = File.createTempFile(&quot;oomlet-fh-&quot;, &quot;.tmp&quot;);</span>
-<span class="fc" id="L30">                    tempFile.deleteOnExit(); // Auto-clean temp files on JVM shutdown</span>
-
-<span class="fc" id="L32">                    FileInputStream fis = new FileInputStream(tempFile);</span>
-<span class="fc" id="L33">                    openStreams.add(fis);</span>
-<span class="fc" id="L34">                    successCount++;</span>
-<span class="nc" id="L35">                } catch (IOException e) {</span>
-<span class="nc" id="L36">                    logger.warn(&quot;Failed to open file handle at index {}: {}&quot;, i, e.getMessage());</span>
-<span class="nc" id="L37">                    break; // Stop trying after first failure (optional, can continue if you want)</span>
-<span class="fc" id="L38">                }</span>
-            }
-        } finally {
-            // Always close all opened file streams
-<span class="fc bfc" id="L42" title="All 2 branches covered.">            for (FileInputStream fis : openStreams) {</span>
-                try {
-<span class="fc" id="L44">                    fis.close();</span>
-<span class="nc" id="L45">                } catch (IOException e) {</span>
-<span class="nc" id="L46">                    logger.warn(&quot;Failed to close file handle: {}&quot;, e.getMessage());</span>
-<span class="fc" id="L47">                }</span>
-<span class="fc" id="L48">            }</span>
-        }
-
-<span class="fc" id="L51">        Map&lt;String, Object&gt; response = new HashMap&lt;&gt;();</span>
-<span class="fc" id="L52">        response.put(&quot;requested&quot;, count);</span>
-<span class="fc" id="L53">        response.put(&quot;successfullyOpened&quot;, successCount);</span>
-<span class="fc" id="L54">        response.put(&quot;failed&quot;, count - successCount);</span>
-
-<span class="fc" id="L56">        logger.info(&quot;File handle open request completed: requested={}, success={}, failed={}&quot;,</span>
-<span class="fc" id="L57">                count, successCount, count - successCount);</span>
-
-<span class="fc" id="L59">        return response;</span>
+<span class="fc" id="L27">        return fileHandleService.openFiles(count);</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

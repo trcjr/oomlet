@@ -2,57 +2,40 @@
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import com.github.trcjr.oomlet.service.StatusService;
+
 @RestController
 @RequestMapping(&quot;/api/status&quot;)
-<span class="fc" id="L10">public class StatusController {</span>
+public class StatusController {
 
-<span class="fc" id="L12">    private static final Logger logger = LoggerFactory.getLogger(StatusController.class);</span>
+<span class="fc" id="L15">    private static final Logger logger = LoggerFactory.getLogger(StatusController.class);</span>
 
-    private static final int MAX_STATUS = 599;
-    private static final int MIN_STATUS = 100;
-    private static final long MAX_DELAY_MS = 30_000;
+    private final StatusService statusService;
+
+    @Autowired
+<span class="fc" id="L20">    public StatusController(StatusService statusService) {</span>
+<span class="fc" id="L21">        this.statusService = statusService;</span>
+<span class="fc" id="L22">    }</span>
 
     @GetMapping
     public ResponseEntity&lt;String&gt; setStatus(
             @RequestParam(defaultValue = &quot;200&quot;) int code,
             @RequestParam(defaultValue = &quot;0&quot;) long delayMillis) {
 
-<span class="fc" id="L23">        logger.info(&quot;Received status request: code={}, delay={}ms&quot;, code, delayMillis);</span>
-
-<span class="pc bpc" id="L25" title="1 of 4 branches missed.">        if (code &lt; MIN_STATUS || code &gt; MAX_STATUS) {</span>
-<span class="fc" id="L26">            logger.warn(&quot;Invalid status code: {}. Must be between {} and {}.&quot;, code, MIN_STATUS, MAX_STATUS);</span>
-<span class="fc" id="L27">            return ResponseEntity.badRequest()</span>
-<span class="fc" id="L28">                    .body(&quot;Invalid status code. Must be between &quot; + MIN_STATUS + &quot; and &quot; + MAX_STATUS + &quot;.&quot;);</span>
-        }
-
-<span class="pc bpc" id="L31" title="1 of 2 branches missed.">        if (delayMillis &lt; 0) {</span>
-<span class="nc" id="L32">            logger.warn(&quot;Negative delay: {}ms. Delay must be &gt;= 0.&quot;, delayMillis);</span>
-<span class="nc" id="L33">            return ResponseEntity.badRequest()</span>
-<span class="nc" id="L34">                    .body(&quot;Invalid delay. Must be &gt;= 0.&quot;);</span>
-        }
-
-<span class="fc bfc" id="L37" title="All 2 branches covered.">        if (delayMillis &gt; MAX_DELAY_MS) {</span>
-<span class="fc" id="L38">            logger.warn(&quot;Delay too long: {}ms. Max allowed is {}ms.&quot;, delayMillis, MAX_DELAY_MS);</span>
-<span class="fc" id="L39">            return ResponseEntity.badRequest()</span>
-<span class="fc" id="L40">                    .body(&quot;Invalid delay. Max allowed is &quot; + MAX_DELAY_MS + &quot; ms.&quot;);</span>
-        }
-
         try {
-<span class="fc bfc" id="L44" title="All 2 branches covered.">            if (delayMillis &gt; 0) {</span>
-<span class="fc" id="L45">                Thread.sleep(delayMillis);</span>
+<span class="fc" id="L30">            String body = statusService.setStatus(code, delayMillis);</span>
+<span class="fc" id="L31">            return ResponseEntity.status(code).body(body);</span>
+<span class="fc" id="L32">        } catch (IllegalArgumentException e) {</span>
+<span class="fc" id="L33">            return ResponseEntity.badRequest().body(e.getMessage());</span>
+<span class="fc" id="L34">        } catch (RuntimeException e) {</span>
+<span class="pc bpc" id="L35" title="1 of 2 branches missed.">            if (e.getMessage().contains(&quot;Interrupted&quot;)) {</span>
+<span class="fc" id="L36">                return ResponseEntity.status(500).body(&quot;Returning HTTP status: 500 due to interruption&quot;);</span>
             }
-
-<span class="fc" id="L48">            String body = &quot;Returning HTTP status: &quot; + code + &quot; after &quot; + delayMillis + &quot; ms&quot;;</span>
-<span class="fc" id="L49">            return ResponseEntity.status(code).body(body);</span>
-
-<span class="nc" id="L51">        } catch (InterruptedException e) {</span>
-<span class="nc" id="L52">            Thread.currentThread().interrupt();</span>
-<span class="nc" id="L53">            String body = &quot;Returning HTTP status: 500 due to interruption&quot;;</span>
-<span class="nc" id="L54">            logger.error(&quot;Interrupted during delay&quot;, e);</span>
-<span class="nc" id="L55">            return ResponseEntity.status(500).body(body);</span>
+<span class="nc" id="L38">            throw e;</span>
         }
     }
 }

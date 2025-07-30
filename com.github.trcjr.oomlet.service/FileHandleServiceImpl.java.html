@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>FileHandleServiceImpl.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">OOMlet</a> &gt; <a href="index.source.html" class="el_package">com.github.trcjr.oomlet.service</a> &gt; <span class="el_source">FileHandleServiceImpl.java</span></div><h1>FileHandleServiceImpl.java</h1><pre class="source lang-java linenums">package com.github.trcjr.oomlet.service;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+@Service
+<span class="fc" id="L16">public class FileHandleServiceImpl implements FileHandleService {</span>
+
+<span class="fc" id="L18">    private static final Logger logger = LoggerFactory.getLogger(FileHandleServiceImpl.class);</span>
+
+    @Override
+    public Map&lt;String, Object&gt; openFiles(int count) {
+<span class="fc" id="L22">        List&lt;FileInputStream&gt; openStreams = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L23">        int successCount = 0;</span>
+
+        try {
+<span class="fc bfc" id="L26" title="All 2 branches covered.">            for (int i = 0; i &lt; count; i++) {</span>
+                try {
+<span class="fc" id="L28">                    File tempFile = File.createTempFile(&quot;oomlet-fh-&quot;, &quot;.tmp&quot;);</span>
+<span class="fc" id="L29">                    tempFile.deleteOnExit(); // Auto-clean temp files on JVM shutdown</span>
+
+<span class="fc" id="L31">                    FileInputStream fis = new FileInputStream(tempFile);</span>
+<span class="fc" id="L32">                    openStreams.add(fis);</span>
+<span class="fc" id="L33">                    successCount++;</span>
+<span class="nc" id="L34">                } catch (IOException e) {</span>
+<span class="nc" id="L35">                    logger.warn(&quot;Failed to open file handle at index {}: {}&quot;, i, e.getMessage());</span>
+<span class="nc" id="L36">                    break; // Stop trying after first failure (optional, can continue if you want)</span>
+<span class="fc" id="L37">                }</span>
+            }
+        } finally {
+            // Always close all opened file streams
+<span class="fc bfc" id="L41" title="All 2 branches covered.">            for (FileInputStream fis : openStreams) {</span>
+                try {
+<span class="fc" id="L43">                    fis.close();</span>
+<span class="nc" id="L44">                } catch (IOException e) {</span>
+<span class="nc" id="L45">                    logger.warn(&quot;Failed to close file handle: {}&quot;, e.getMessage());</span>
+<span class="fc" id="L46">                }</span>
+<span class="fc" id="L47">            }</span>
+        }
+
+<span class="fc" id="L50">        Map&lt;String, Object&gt; response = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L51">        response.put(&quot;requested&quot;, count);</span>
+<span class="fc" id="L52">        response.put(&quot;successfullyOpened&quot;, successCount);</span>
+<span class="fc" id="L53">        response.put(&quot;failed&quot;, count - successCount);</span>
+
+<span class="fc" id="L55">        logger.info(&quot;File handle open request completed: requested={}, success={}, failed={}&quot;,</span>
+<span class="fc" id="L56">                count, successCount, count - successCount);</span>
+
+<span class="fc" id="L58">        return response;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>
