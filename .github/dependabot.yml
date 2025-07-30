@@ -26,10 +26,6 @@ updates:
         update-types:
           - "minor"
           - "patch"
-    # Only create PRs for minor and patch updates (including security)
-    update-types:
-      - "minor"
-      - "patch"
 
   # Enable version updates for GitHub Actions
   - package-ecosystem: "github-actions"
