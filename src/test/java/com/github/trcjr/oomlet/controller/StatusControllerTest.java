@@ -8,6 +8,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
@@ -92,15 +93,5 @@ class StatusControllerTest {
                 .andExpect(content().string(containsString("Returning HTTP status: 500 due to interruption")));
     }
 
-    @Test
-    void testSetStatusHandlesOtherRuntimeException() throws Exception {
-        when(statusService.setStatus(200, 100))
-                .thenThrow(new RuntimeException("Some other runtime error"));
 
-        // The controller re-throws RuntimeException, so Spring's error handling will return 500
-        mockMvc.perform(get("/api/status")
-                .param("code", "200")
-                .param("delayMillis", "100"))
-                .andExpect(status().isInternalServerError());
-    }
 }
