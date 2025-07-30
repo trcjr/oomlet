@@ -2,58 +2,41 @@
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.github.trcjr.oomlet.dto.CpuBurnResponse;
+import com.github.trcjr.oomlet.service.CpuBurnService;
 
 @RestController
-<span class="fc" id="L16">public class CpuBurnController {</span>
+public class CpuBurnController {
 
-<span class="fc" id="L18">    private static final Logger logger = LoggerFactory.getLogger(CpuBurnController.class);</span>
+<span class="fc" id="L17">    private static final Logger logger = LoggerFactory.getLogger(CpuBurnController.class);</span>
+
+    private final CpuBurnService cpuBurnService;
+
+    @Autowired
+<span class="fc" id="L22">    public CpuBurnController(CpuBurnService cpuBurnService) {</span>
+<span class="fc" id="L23">        this.cpuBurnService = cpuBurnService;</span>
+<span class="fc" id="L24">    }</span>
 
     @GetMapping(&quot;/api/burn-cpu&quot;)
     public ResponseEntity&lt;CpuBurnResponse&gt; burnCpu(
             @RequestParam(defaultValue = &quot;1000&quot;) long millis,
             @RequestParam(defaultValue = &quot;1&quot;) int threads) {
 
-<span class="fc" id="L25">        logger.info(&quot;Received CPU burn request: millis={} threads={}&quot;, millis, threads);</span>
+<span class="fc" id="L31">        logger.info(&quot;Received CPU burn request: millis={} threads={}&quot;, millis, threads);</span>
 
-<span class="fc" id="L27">        long endTime = System.currentTimeMillis() + millis;</span>
-<span class="fc" id="L28">        List&lt;Thread&gt; workers = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L33">        CpuBurnResponse response = cpuBurnService.burnCpu(millis, threads);</span>
 
-<span class="fc bfc" id="L30" title="All 2 branches covered.">        for (int i = 0; i &lt; threads; i++) {</span>
-<span class="fc" id="L31">            Thread worker = new Thread(() -&gt; {</span>
-<span class="fc bfc" id="L32" title="All 2 branches covered.">                while (System.currentTimeMillis() &lt; endTime) {</span>
-<span class="fc" id="L33">                    double x = Math.random() * Math.random(); // Do something to waste CPU</span>
-<span class="fc" id="L34">                }</span>
-<span class="fc" id="L35">            });</span>
-<span class="fc" id="L36">            worker.start();</span>
-<span class="fc" id="L37">            workers.add(worker);</span>
+<span class="fc bfc" id="L35" title="All 2 branches covered.">        if (&quot;interrupted&quot;.equals(response.getStatus())) {</span>
+<span class="fc" id="L36">            return ResponseEntity.status(500).body(response);</span>
         }
 
-        // Optionally wait for all threads to finish
-<span class="fc bfc" id="L41" title="All 2 branches covered.">        for (Thread worker : workers) {</span>
-            try {
-<span class="fc" id="L43">                worker.join();</span>
-<span class="nc" id="L44">            } catch (InterruptedException e) {</span>
-<span class="nc" id="L45">                Thread.currentThread().interrupt();</span>
-<span class="nc" id="L46">                logger.error(&quot;CPU burn interrupted&quot;, e);</span>
-<span class="nc" id="L47">                return ResponseEntity.status(500).body(</span>
-                    new CpuBurnResponse(millis, threads, &quot;interrupted&quot;)
-                );
-<span class="fc" id="L50">            }</span>
-<span class="fc" id="L51">        }</span>
-
-<span class="fc" id="L53">        logger.info(&quot;CPU burn complete&quot;);</span>
-
-<span class="fc" id="L55">        CpuBurnResponse response = new CpuBurnResponse(millis, threads, &quot;completed&quot;);</span>
-<span class="fc" id="L56">        return ResponseEntity.ok(response);</span>
+<span class="fc" id="L39">        return ResponseEntity.ok(response);</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>
