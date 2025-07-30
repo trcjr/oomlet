@@ -1,0 +1,65 @@
+name: Fast PR Check
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+
+jobs:
+  quick-check:
+    name: Quick PR Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: maven
+
+      - name: woke
+        uses: get-woke/woke-action@v0
+        with:
+          fail-on-error: true
+
+      - name: Lint Helm Chart
+        run: helm lint helm
+
+      - name: Build and Test (Fast)
+        run: |
+          ./mvnw clean compile test-compile \
+            -Dmaven.test.parallel=true \
+            -Dmaven.test.forkCount=2 \
+            -Dmaven.test.reuseForks=true \
+            -Dmaven.compiler.fork=true \
+            -Dmaven.compiler.useIncrementalCompilation=true \
+            -B
+
+      - name: Run Unit Tests Only
+        run: |
+          ./mvnw test \
+            -Dmaven.test.parallel=true \
+            -Dmaven.test.forkCount=2 \
+            -Dmaven.test.reuseForks=true \
+            -B
+
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: target/surefire-reports/
+          if-no-files-found: warn
+          overwrite: true
+
+      - name: Publish Test Report
+        uses: dorny/test-reporter@v1
+        if: always()
+        with:
+          name: Unit Tests
+          path: target/surefire-reports/*.xml
+          reporter: java-junit

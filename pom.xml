@@ -12,6 +12,12 @@
   <properties>
     <java.version>21</java.version>
     <spring-boot.version>3.5.0</spring-boot.version>
+    <!-- Build optimizations -->
+    <maven.test.parallel>true</maven.test.parallel>
+    <maven.test.forkCount>2</maven.test.forkCount>
+    <maven.test.reuseForks>true</maven.test.reuseForks>
+    <maven.compiler.fork>true</maven.compiler.fork>
+    <maven.compiler.useIncrementalCompilation>true</maven.compiler.useIncrementalCompilation>
   </properties>
 
   <dependencyManagement>

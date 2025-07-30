@@ -1,0 +1,191 @@
+name: OOMlet main Branch CI Workflow (Optimized)
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  woke:
+    name: Inclusive Language Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      - name: woke
+        uses: get-woke/woke-action@v0
+        with:
+          fail-on-error: true
+
+  build-test:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    outputs:
+      short_hash: ${{ steps.vars.outputs.short_hash }}
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: maven
+
+      - name: Set Git Short Hash
+        id: vars
+        run: echo "short_hash=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Extract Version from pom.xml
+        id: version
+        run: echo "version=$(./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout)" >> "$GITHUB_OUTPUT"
+
+      - name: Build and Verify with Maven
+        run: ./mvnw clean verify -Dmaven.test.parallel=true -Dmaven.test.forkCount=2
+
+      - name: Upload Spring Boot JAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: oomlet-jar
+          path: target/oomlet-${{ steps.version.outputs.version }}.jar
+          if-no-files-found: error
+          overwrite: true
+
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: target/surefire-reports/
+          if-no-files-found: warn
+          overwrite: true
+
+      - name: Publish Test Report
+        uses: dorny/test-reporter@v1
+        if: always()
+        with:
+          name: Unit Tests
+          path: target/surefire-reports/*.xml
+          reporter: java-junit
+
+      - name: Upload Coverage Reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-data
+          path: |
+            target/site/jacoco/jacoco.xml
+            target/site/jacoco
+          if-no-files-found: warn
+          overwrite: true
+
+  docker:
+    name: Docker Build and Push
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: woke
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract Version from pom.xml
+        id: version
+        run: echo "version=$(./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout)" >> "$GITHUB_OUTPUT"
+
+      - name: Build and Push Multi-Arch Docker Image
+        run: |
+          docker buildx build \
+            --platform linux/amd64,linux/arm64 \
+            --tag ghcr.io/${{ github.repository_owner }}/oomlet:${{ steps.version.outputs.version }} \
+            --tag ghcr.io/${{ github.repository_owner }}/oomlet:main \
+            --tag ghcr.io/${{ github.repository_owner }}/oomlet:latest \
+            --push \
+            --cache-from type=gha \
+            --cache-to type=gha,mode=max .
+
+  helm:
+    name: Helm Package and Upload
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: build-test
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Lint Helm Chart
+        run: helm lint helm
+
+      - name: Package Helm Chart
+        run: |
+          helm package helm --version "${{ needs.build-test.outputs.version }}"
+          mkdir -p helm-charts
+          mv oomlet-*.tgz helm-charts/
+
+      - name: Upload Helm Chart
+        uses: actions/upload-artifact@v4
+        with:
+          name: helm-charts
+          path: helm-charts/
+          if-no-files-found: warn
+          overwrite: true
+
+  coverage:
+    name: Coverage Reporting and Artifacts
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    needs: build-test
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Download Coverage Reports
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage-data
+          path: target/site/jacoco
+
+      - name: Upload to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: target/site/jacoco/jacoco.xml
+          fail_ci_if_error: true
+
+      - name: Upload HTML Coverage to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./target/site/jacoco
+          publish_branch: gh-pages
+
+      - name: Prepare Source Package
+        run: |
+          mkdir -p staging/source
+          rsync -av --exclude=target --exclude=.git --exclude=staging ./ staging/source/
+          cd staging/source
+          zip -r ../../source.zip .
+          tar -czf ../../source.tar.gz .
+
+      - name: Upload Source Archives
+        uses: actions/upload-artifact@v4
+        with:
+          name: source-archives
+          path: |
+            source.zip
+            source.tar.gz
+          if-no-files-found: warn
+          overwrite: true

@@ -1,22 +1,38 @@
 # ========================
-# Stage 1 - Build
+# Stage 1 - Dependencies
+# ========================
+FROM maven:3.9.6-eclipse-temurin-21 AS deps
+WORKDIR /build
+COPY pom.xml .
+RUN mvn dependency:go-offline -B
+
+# ========================
+# Stage 2 - Build
 # ========================
 FROM maven:3.9.6-eclipse-temurin-21 AS builder
-
 WORKDIR /build
 
+# Copy dependencies from deps stage
+COPY --from=deps /root/.m2 /root/.m2
+
+# Copy source code
 COPY pom.xml .
 COPY src ./src
 
-RUN mvn clean package
+# Build with optimized settings
+RUN mvn clean package \
+    -Dmaven.test.parallel=true \
+    -Dmaven.test.forkCount=2 \
+    -Dmaven.test.reuseForks=true \
+    -Dmaven.compiler.fork=true \
+    -Dmaven.compiler.useIncrementalCompilation=true \
+    -DskipTests=false \
+    -B
 
 # ========================
-# Stage 2 - Runtime
+# Stage 3 - Runtime
 # ========================
-FROM eclipse-temurin:21-jre-jammy
-
-
-
+FROM eclipse-temurin:21-jre-jammy AS runtime
 
 WORKDIR /app
 
