@@ -13,7 +13,7 @@ RUN mvn clean package
 # ========================
 # Stage 2 - Runtime
 # ========================
-FROM eclipse-temurin:21-jre-jammy
+FROM eclipse-temurin:25-jre-jammy
 
 
 
