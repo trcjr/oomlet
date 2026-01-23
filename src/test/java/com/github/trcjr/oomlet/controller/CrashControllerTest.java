@@ -2,11 +2,11 @@ package com.github.trcjr.oomlet.controller;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.verify;
@@ -14,20 +14,20 @@ import static org.mockito.Mockito.times;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(CrashController.class)
 class CrashControllerTest {
 
-    @Autowired
     private MockMvc mockMvc;
 
-    @SpyBean
     private CrashController controller;
 
     @BeforeEach
     void setup() {
+        MockitoAnnotations.openMocks(this);
+        controller = Mockito.spy(new CrashController());
         // Overriding shutdown behavior to prevent actual System.exit
         doNothing().when(controller).shutdownWithCode(1);
         doNothing().when(controller).shutdownWithCode(137);
+        mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
     }
 
     @Test

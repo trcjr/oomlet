@@ -11,7 +11,7 @@
 
   <properties>
     <java.version>21</java.version>
-    <spring-boot.version>4.0.0</spring-boot.version>
+    <spring-boot.version>4.0.2</spring-boot.version>
     <maven.version>3.6.3</maven.version>
   </properties>
 
@@ -64,6 +64,7 @@
         </exclusion>
       </exclusions>
     </dependency>
+    <!-- rely on spring-boot-starter-actuator and starter-test for test artifacts -->
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-inline</artifactId>

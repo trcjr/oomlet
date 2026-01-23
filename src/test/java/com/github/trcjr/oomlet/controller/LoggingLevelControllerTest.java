@@ -1,21 +1,39 @@
 package com.github.trcjr.oomlet.controller;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.springframework.boot.logging.LoggerConfiguration;
+import org.springframework.boot.logging.LogLevel;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.doReturn;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.http.MediaType;
+import org.springframework.boot.logging.LoggingSystem;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(controllers = LoggingLevelController.class)
 public class LoggingLevelControllerTest {
 
-    @Autowired
     private MockMvc mockMvc;
+
+    @Mock
+    private LoggingSystem loggingSystem;
+
+    @BeforeEach
+    void setup() {
+        MockitoAnnotations.openMocks(this);
+        doReturn(new LoggerConfiguration("org.springframework", LogLevel.INFO, LogLevel.INFO))
+            .when(loggingSystem).getLoggerConfiguration("org.springframework");
+
+        LoggingLevelController controller = new LoggingLevelController(loggingSystem);
+        mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
+    }
 
     @Test
     void testGetSpringLoggingLevel() throws Exception {
