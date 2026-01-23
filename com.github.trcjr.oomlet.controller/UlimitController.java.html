@@ -20,14 +20,14 @@ public class UlimitController {
     private final Supplier&lt;Process&gt; processSupplier;
 
     public UlimitController() {
-<span class="nc" id="L23">        this(() -&gt; {</span>
+<span class="fc" id="L23">        this(() -&gt; {</span>
             try {
 <span class="nc" id="L25">                return new ProcessBuilder(&quot;sh&quot;, &quot;-c&quot;, &quot;ulimit -a&quot;).start();</span>
 <span class="nc" id="L26">            } catch (Exception e) {</span>
 <span class="nc" id="L27">                throw new RuntimeException(&quot;Failed to start ulimit process&quot;, e);</span>
             }
         });
-<span class="nc" id="L30">    }</span>
+<span class="fc" id="L30">    }</span>
 
 <span class="fc" id="L32">    public UlimitController(Supplier&lt;Process&gt; processSupplier) {</span>
 <span class="fc" id="L33">        this.processSupplier = processSupplier;</span>
