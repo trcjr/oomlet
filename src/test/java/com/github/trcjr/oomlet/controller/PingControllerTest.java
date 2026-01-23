@@ -4,8 +4,10 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.junit.jupiter.api.BeforeEach;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
@@ -19,14 +21,18 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(PingController.class)
 class PingControllerTest {
 
-        @Autowired
         private MockMvc mockMvc;
 
-        @MockBean
+        @Mock
         private RestTemplate restTemplate;
+
+        @BeforeEach
+        void setup() {
+                MockitoAnnotations.openMocks(this);
+                mockMvc = MockMvcBuilders.standaloneSetup(new com.github.trcjr.oomlet.controller.PingController(restTemplate)).build();
+        }
 
         @Nested
         @DisplayName("Normal Behavior")

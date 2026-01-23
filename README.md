@@ -57,7 +57,7 @@
 
 ### 📋 Prerequisites
 
-- Java 17+ (Temurin recommended)
+-- Java 21+ (Temurin recommended)
 - Maven 3.8+ (no need to install if using the Maven Wrapper)
 
 ### 1. Build the application
@@ -69,13 +69,13 @@
 ### 2. Run the application
 
 ```bash
-java -jar target/oomlet-0.0.8.jar
+java -jar target/oomlet-0.0.13.jar
 ```
 
 (Optional) Override port:
 
 ```bash
-SERVER_PORT=9090 java -jar target/oomlet-0.0.8.jar
+SERVER_PORT=9090 java -jar target/oomlet-0.0.13.jar
 ```
 
 ---
@@ -164,7 +164,7 @@ curl 'http://localhost:8080/api/logging/spring'
 You can limit or expand memory usage for stress tests:
 
 ```bash
-JAVA_OPTS="-Xmx512m -Xms128m" java -jar target/oomlet-0.0.8.jar
+JAVA_OPTS="-Xmx512m -Xms128m" java -jar target/oomlet-0.0.13.jar
 ```
 
 ---

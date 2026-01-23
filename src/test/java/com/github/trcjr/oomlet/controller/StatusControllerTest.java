@@ -1,11 +1,12 @@
 package com.github.trcjr.oomlet.controller;
 
 import com.github.trcjr.oomlet.service.StatusService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.*;
@@ -15,14 +16,20 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(controllers = StatusController.class)
+@SuppressWarnings("unused")
 class StatusControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+        private MockMvc mockMvc;
 
-    @MockBean
-    private StatusService statusService;
+        @Mock
+        private StatusService statusService;
+
+        @BeforeEach
+        void setup() {
+                MockitoAnnotations.openMocks(this);
+                StatusController controller = new StatusController(statusService);
+                mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
+        }
 
     @Test
     void testSetStatus200WithZeroDelay() throws Exception {
