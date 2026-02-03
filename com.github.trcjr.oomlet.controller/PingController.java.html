@@ -38,8 +38,8 @@ public class PingController {
 
 <span class="fc" id="L39">            ResponseEntity&lt;Void&gt; response = restTemplate.exchange(url, HttpMethod.GET, entity, Void.class);</span>
 
-<span class="fc" id="L41">            logger.info(&quot;Ping successful: {} - {}&quot;, response.getStatusCode().value(), response.getStatusCode());</span>
-<span class="fc" id="L42">            return ResponseEntity.ok(&quot;Ping successful with status: &quot; + response.getStatusCode().value());</span>
+<span class="fc" id="L41">            logger.info(&quot;Ping successful: {} - {}&quot;, response.getStatusCodeValue(), response.getStatusCode());</span>
+<span class="fc" id="L42">            return ResponseEntity.ok(&quot;Ping successful with status: &quot; + response.getStatusCodeValue());</span>
 
 <span class="fc" id="L44">        } catch (Exception e) {</span>
 <span class="fc" id="L45">            logger.error(&quot;Ping failed for URL: {}&quot;, url, e);</span>
