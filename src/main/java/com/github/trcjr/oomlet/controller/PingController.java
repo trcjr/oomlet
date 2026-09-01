@@ -38,8 +38,8 @@ public class PingController {
 
             ResponseEntity<Void> response = restTemplate.exchange(url, HttpMethod.GET, entity, Void.class);
 
-            logger.info("Ping successful: {} - {}", response.getStatusCodeValue(), response.getStatusCode());
-            return ResponseEntity.ok("Ping successful with status: " + response.getStatusCodeValue());
+            logger.info("Ping successful: {} - {}", response.getStatusCode().value(), response.getStatusCode());
+            return ResponseEntity.ok("Ping successful with status: " + response.getStatusCode().value());
 
         } catch (Exception e) {
             logger.error("Ping failed for URL: {}", url, e);

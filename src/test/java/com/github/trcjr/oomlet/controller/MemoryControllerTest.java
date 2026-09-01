@@ -1,11 +1,12 @@
 package com.github.trcjr.oomlet.controller;
 
 import com.github.trcjr.oomlet.service.MemoryService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -15,13 +16,18 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(MemoryController.class)
 public class MemoryControllerTest {
-    @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
+    @Mock
     private MemoryService memoryService;
+
+    @BeforeEach
+    void setup() {
+        MockitoAnnotations.openMocks(this);
+        MemoryController controller = new MemoryController(memoryService);
+        mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
+    }
 
     @Test
     void testAllocateMemorySuccess() throws Exception {

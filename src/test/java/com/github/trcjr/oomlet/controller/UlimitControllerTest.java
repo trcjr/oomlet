@@ -3,12 +3,9 @@ package com.github.trcjr.oomlet.controller;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
+import org.junit.jupiter.api.BeforeEach;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -19,13 +16,9 @@ import static org.hamcrest.Matchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(controllers = UlimitController.class)
-@Import(UlimitControllerTest.MockConfig.class)
 class UlimitControllerTest {
 
-    @Autowired
     private MockMvc mockMvc;
-
     private static final String VALID_ULIMIT_OUTPUT =
         "core file size          (blocks, -c) 0\n" +
         "data seg size           (kbytes, -d) unlimited\n" +
@@ -41,17 +34,15 @@ class UlimitControllerTest {
 
     private static String injectedOutput = VALID_ULIMIT_OUTPUT;
 
-    @Configuration
-    static class MockConfig {
-        @Bean
-        public UlimitController ulimitController() {
-            return new UlimitController(() -> {
-                if ("__throw__".equals(injectedOutput)) {
-                    throw new RuntimeException("boom");
-                }
-                return new MockProcess(injectedOutput);
-            });
-        }
+    @BeforeEach
+    void setup() {
+        UlimitController controller = new UlimitController(() -> {
+            if ("__throw__".equals(injectedOutput)) {
+                throw new RuntimeException("boom");
+            }
+            return new MockProcess(injectedOutput);
+        });
+        mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
     }
 
     static class MockProcess extends Process {

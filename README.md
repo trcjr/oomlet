@@ -57,7 +57,7 @@
 
 ### 📋 Prerequisites
 
-- Java 17+ (Temurin recommended)
+-- Java 21+ (Temurin recommended)
 - Maven 3.8+ (no need to install if using the Maven Wrapper)
 
 ### 1. Build the application
