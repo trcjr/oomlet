@@ -9,6 +9,10 @@ DOCKER_IMAGE = $(APP_NAME):latest
 build:
 	mvn clean package
 
+## Run the test suite
+test:
+	mvn test
+
 ## Run the application locally (requires prior build)
 run: build
 	java -jar $(JAR_FILE)
@@ -35,6 +39,7 @@ help:
 	@echo ""
 	@echo "Available targets:"
 	@echo "  build            - Clean and build the project with Maven"
+	@echo "  test             - Run the Maven test suite"
 	@echo "  run              - Run the built JAR locally"
 	@echo "  docker-build     - Build Docker image using Dockerfile"
 	@echo "  docker-run       - Run Docker container locally"

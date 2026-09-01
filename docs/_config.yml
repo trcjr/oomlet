@@ -1,0 +1,104 @@
+title: OOMlet
+description: Chaos-Friendly QA and Debugging Spring Boot Application
+url: "https://trcjr.github.io"
+baseurl: "/oomlet"
+
+# Build settings
+theme: jekyll-theme-cayman
+plugins:
+  - jekyll-relative-links
+
+# Site settings
+author:
+  name: OOMlet Team
+  email: ""
+  bio: "Chaos-friendly QA and debugging tools"
+  location: "GitHub"
+  links:
+    - label: "GitHub"
+      icon: "fab fa-fw fa-github"
+      url: "https://github.com/trcjr/oomlet"
+
+# Collections
+collections:
+  docs:
+    output: true
+    permalink: /:collection/:name/
+
+# Defaults
+defaults:
+  - scope:
+      path: ""
+      type: "docs"
+    values:
+      layout: "page"
+
+# Exclude from processing
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - vendor/bundle/
+  - vendor/cache/
+  - vendor/gems/
+  - vendor/ruby/
+
+# Include files
+include:
+  - _pages
+  - _posts
+  - _drafts
+  - _layouts
+  - _includes
+  - _sass
+  - assets
+  - images
+  - favicon.ico
+  - robots.txt
+  - sitemap.xml
+
+# Markdown settings
+markdown: kramdown
+kramdown:
+  input: GFM
+  hard_wrap: false
+  auto_ids: true
+  footnote_nr: 1
+  entity_output: as_char
+  toc_levels: 1..6
+  smart_quotes: lsquo,rsquo,ldquo,rdquo
+  enable_coderay: false
+
+# Sass settings
+sass:
+  sass_dir: _sass
+  style: compressed
+
+# Pagination
+paginate: 5
+paginate_path: "/blog/page:num/"
+
+# Feed settings
+feed:
+  path: atom.xml
+  limit: 10
+
+# SEO settings
+google_analytics: ""
+google_analytics_anonymize_ip: true
+
+# Social media
+social_media_timezone: America/New_York
+
+# Repository settings
+repository: trcjr/oomlet
+repository_url: https://github.com/trcjr/oomlet
+
+# Show download button
+show_downloads: true
+
+# Show social media
+show_social_media: true
+
+# Show repository info
+show_repository_info: true

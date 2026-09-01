@@ -29,7 +29,7 @@
 - [Crash the Application](#-crash-the-application)
 - [Runtime Configuration](#-runtime-configuration)
 - [Docker and Kubernetes Support](#-docker-and-kubernetes-support)
-  - [Kind Cluster Setup](#-kind-cluster-setup-recommended-for-testing)
+- [Kind Cluster Setup](#-kind-cluster-setup-recommended-for-testing)
 - [Testing and Code Coverage](#-testing-and-code-coverage)
 - [Signal Handling](#-signal-handling)
 - [Architecture Overview](#-architecture-overview)
@@ -69,13 +69,13 @@
 ### 2. Run the application
 
 ```bash
-java -jar target/oomlet-0.0.8.jar
+java -jar target/oomlet-0.0.13.jar
 ```
 
 (Optional) Override port:
 
 ```bash
-SERVER_PORT=9090 java -jar target/oomlet-0.0.8.jar
+SERVER_PORT=9090 java -jar target/oomlet-0.0.13.jar
 ```
 
 ---
@@ -96,6 +96,7 @@ SERVER_PORT=9090 java -jar target/oomlet-0.0.8.jar
 | `/api/crash?code=137` | POST | Exit the process with specific code |
 | `/api/ping?url=https://example.com` | GET | Test outbound connectivity to a URL |
 | `/api/latency?delayMillis=1500` | GET | Simulate response latency for timeout testing |
+| `/api/random-data?size=1048576` | GET | Stream random binary payload of requested byte size (useful for stress testing and bandwidth/load tests) |
 
 ---
 
@@ -117,6 +118,18 @@ curl 'http://localhost:8080/api/open-files?count=100'
 
 ```bash
 curl 'http://localhost:8080/api/burn-cpu?millis=5000&threads=4'
+```
+
+### Random Data (streaming)
+
+Stream arbitrary binary payloads (useful for bandwidth and large-file stress tests). The endpoint streams data and does not allocate the full payload in memory.
+
+```bash
+# download 1 MB of random data
+curl -v 'http://localhost:8080/api/random-data?size=1048576' --output /dev/null
+
+# stream 1 GB (will stream; be cautious)
+curl -v 'http://localhost:8080/api/random-data?size=1073741824' --output /dev/null
 ```
 
 ---
@@ -164,7 +177,7 @@ curl 'http://localhost:8080/api/logging/spring'
 You can limit or expand memory usage for stress tests:
 
 ```bash
-JAVA_OPTS="-Xmx512m -Xms128m" java -jar target/oomlet-0.0.8.jar
+JAVA_OPTS="-Xmx512m -Xms128m" java -jar target/oomlet-0.0.13.jar
 ```
 
 ---
@@ -298,6 +311,26 @@ View live coverage:
 
 - GitHub Pages: https://trcjr.github.io/oomlet
 - Codecov: https://codecov.io/gh/trcjr/oomlet
+
+### 🌐 GitHub Pages Site
+
+OOMlet includes a comprehensive GitHub Pages site with:
+
+- **Landing Page**: Beautiful homepage showcasing features and capabilities
+- **Coverage Reports**: Live JaCoCo coverage reports and metrics
+- **Documentation**: Easy access to project documentation
+- **Quick Links**: Direct access to repository, issues, and CI/CD status
+
+The site is automatically deployed via GitHub Actions and includes:
+- Responsive design that works on all devices
+- Real-time coverage status and badges
+- Integration with Codecov dashboard
+- Modern UI with hover effects and smooth transitions
+
+**Local Development**: Test the site locally using Python (no additional installation required):
+```bash
+./scripts/serve-docs-python.sh
+```
 
 ✅ Enforced 80%+ line coverage.
 ✅ Build fails if coverage threshold not met.
