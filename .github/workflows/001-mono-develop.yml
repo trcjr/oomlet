@@ -10,6 +10,10 @@ on:
 env:
   RELEASE_VERSION: 0.1.0
 
+permissions:
+  contents: read
+  packages: write
+
 jobs:
   woke:
     name: Inclusive Language Check
@@ -71,31 +75,31 @@ jobs:
           if-no-files-found: error
           overwrite: true
 
-      - name: Upload Test Results
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-results
-          path: target/surefire-reports/
-          if-no-files-found: warn
-          overwrite: true
+      # - name: Upload Test Results
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: test-results
+      #     path: target/surefire-reports/
+      #     if-no-files-found: warn
+      #     overwrite: true
 
-      - name: Publish Test Report
-        uses: dorny/test-reporter@v1
-        if: always()
-        with:
-          name: Unit Tests
-          path: target/surefire-reports/*.xml
-          reporter: java-junit
+      # - name: Publish Test Report
+      #   uses: dorny/test-reporter@v1
+      #   if: always()
+      #   with:
+      #     name: Unit Tests
+      #     path: target/surefire-reports/*.xml
+      #     reporter: java-junit
 
-      - name: Upload Coverage Reports
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-data
-          path: |
-            target/site/jacoco/jacoco.xml
-            target/site/jacoco
-          if-no-files-found: warn
-          overwrite: true
+      # - name: Upload Coverage Reports
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: coverage-data
+      #     path: |
+      #       target/site/jacoco/jacoco.xml
+      #       target/site/jacoco
+      #     if-no-files-found: warn
+      #     overwrite: true
 
   docker:
     name: Docker Build and Push
@@ -187,25 +191,25 @@ jobs:
         run: |
           echo "Maven cache key used: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}"
 
-      - name: Download Coverage Reports
-        uses: actions/download-artifact@v4
-        with:
-          name: coverage-data
-          path: target/site/jacoco
+      # - name: Download Coverage Reports
+      #   uses: actions/download-artifact@v4
+      #   with:
+      #     name: coverage-data
+      #     path: target/site/jacoco
 
-      - name: Upload to Codecov
-        uses: codecov/codecov-action@v4
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: target/site/jacoco/jacoco.xml
-          fail_ci_if_error: true
+      # - name: Upload to Codecov
+      #   uses: codecov/codecov-action@v4
+      #   with:
+      #     token: ${{ secrets.CODECOV_TOKEN }}
+      #     files: target/site/jacoco/jacoco.xml
+      #     fail_ci_if_error: true
 
-      - name: Upload HTML Coverage to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./target/site/jacoco
-          publish_branch: gh-pages
+      # - name: Upload HTML Coverage to GitHub Pages
+      #   uses: peaceiris/actions-gh-pages@v3
+      #   with:
+      #     github_token: ${{ secrets.GITHUB_TOKEN }}
+      #     publish_dir: ./target/site/jacoco
+      #     publish_branch: gh-pages
 
       - name: Prepare Source Package
         run: |
