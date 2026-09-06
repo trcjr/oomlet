@@ -199,25 +199,25 @@ jobs:
         run: |
           echo "Maven cache key used: ${{ steps.cachekey.outputs.key }}"
 
-      - name: Download Coverage Reports
-        uses: actions/download-artifact@v4
-        with:
-          name: coverage-data
-          path: target/site/jacoco
+      # - name: Download Coverage Reports
+      #   uses: actions/download-artifact@v4
+      #   with:
+      #     name: coverage-data
+      #     path: target/site/jacoco
 
-      - name: Upload to Codecov
-        uses: codecov/codecov-action@v4
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: target/site/jacoco/jacoco.xml
-          fail_ci_if_error: true
+      # - name: Upload to Codecov
+      #   uses: codecov/codecov-action@v4
+      #   with:
+      #     token: ${{ secrets.CODECOV_TOKEN }}
+      #     files: target/site/jacoco/jacoco.xml
+      #     fail_ci_if_error: true
 
-      - name: Upload HTML Coverage to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./target/site/jacoco
-          publish_branch: gh-pages
+      # - name: Upload HTML Coverage to GitHub Pages
+      #   uses: peaceiris/actions-gh-pages@v3
+      #   with:
+      #     github_token: ${{ secrets.GITHUB_TOKEN }}
+      #     publish_dir: ./target/site/jacoco
+      #     publish_branch: gh-pages
 
       - name: Prepare Source Package
         run: |
