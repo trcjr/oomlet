@@ -74,13 +74,25 @@
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>
+<<<<<<< HEAD
       <version>5.21.0</version>
+||||||| 1b4144c
+      <version>5.18.0</version>
+=======
+      <version>5.23.0</version>
+>>>>>>> dependabot/maven/maven-dependencies-e3ccdbf0f4
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>com.squareup.okhttp3</groupId>
       <artifactId>mockwebserver</artifactId>
+<<<<<<< HEAD
       <version>5.3.2</version>
+||||||| 1b4144c
+      <version>5.0.0-alpha.16</version>
+=======
+      <version>5.5.0</version>
+>>>>>>> dependabot/maven/maven-dependencies-e3ccdbf0f4
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -97,12 +109,24 @@
     <dependency>
       <groupId>org.apache.httpcomponents.client5</groupId>
       <artifactId>httpclient5</artifactId>
+<<<<<<< HEAD
       <version>5.6</version>
+||||||| 1b4144c
+      <version>5.5</version>
+=======
+      <version>5.6.4</version>
+>>>>>>> dependabot/maven/maven-dependencies-e3ccdbf0f4
     </dependency>
     <dependency>
       <groupId>org.apache.tomcat.embed</groupId>
       <artifactId>tomcat-embed-core</artifactId>
+<<<<<<< HEAD
       <version>11.0.15</version>
+||||||| 1b4144c
+      <version>11.0.7</version>
+=======
+      <version>11.0.25</version>
+>>>>>>> dependabot/maven/maven-dependencies-e3ccdbf0f4
     </dependency>
   </dependencies>
 
@@ -112,7 +136,13 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-enforcer-plugin</artifactId>
+<<<<<<< HEAD
         <version>3.6.2</version>
+||||||| 1b4144c
+        <version>3.4.1</version>
+=======
+        <version>3.6.3</version>
+>>>>>>> dependabot/maven/maven-dependencies-e3ccdbf0f4
         <executions>
           <execution>
             <id>enforce-maven</id>
@@ -134,7 +164,7 @@
       <plugin>
         <groupId>org.jacoco</groupId>
         <artifactId>jacoco-maven-plugin</artifactId>
-        <version>0.8.13</version>
+        <version>0.8.15</version>
         <executions>
           <execution>
             <id>prepare-agent</id>
@@ -164,7 +194,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.14.0</version>
+        <version>3.16.0</version>
         <configuration>
           <source>${java.version}</source>
           <target>${java.version}</target>
@@ -198,7 +228,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
-        <version>3.5.3</version>
+        <version>3.6.0</version>
         <configuration>
           <useModulePath>false</useModulePath>
         </configuration>
