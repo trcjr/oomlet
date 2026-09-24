@@ -1,5 +1,10 @@
 replicaCount: 2
 
+springCloudKubernetes:
+  enabled: false
+  rbac:
+    create: true
+
 image:
   repository: ghcr.io/trcjr/oomlet
   pullPolicy: IfNotPresent

@@ -196,6 +196,34 @@ docker build -t oomlet:latest .
 docker run -p 8080:8080 oomlet:latest
 ```
 
+### Spring Cloud Kubernetes configuration
+
+OOMlet includes Spring Cloud Kubernetes's Fabric8 ConfigMap integration, managed
+by Spring Cloud 2025.1.3 for Spring Boot 4.1. Local runs leave ConfigMap loading
+disabled and do not require a Kubernetes cluster.
+
+Enable it in a Helm deployment:
+
+```bash
+helm upgrade --install oomlet ./helm --set springCloudKubernetes.enabled=true
+```
+
+The application imports `<release-fullname>-config` from its own namespace at
+startup. The chart provides a Role and RoleBinding granting `get` and `list`
+access to ConfigMaps in that namespace. Secret loading is disabled. To use
+externally managed permissions, set `springCloudKubernetes.rbac.create=false`
+and grant those permissions to the configured service account.
+
+For deployments outside Helm, set `SPRING_CONFIG_IMPORT=kubernetes:`,
+`SPRING_CLOUD_KUBERNETES_CONFIG_ENABLED=true`,
+`SPRING_CLOUD_KUBERNETES_CONFIG_NAME`, and
+`SPRING_CLOUD_KUBERNETES_CONFIG_NAMESPACE` and provide equivalent RBAC.
+ConfigMap changes require a restart; Helm upgrades trigger a rollout through
+the existing configuration checksum. Service discovery and live reload are
+not enabled by this integration.
+
+See the [Spring Cloud Kubernetes ConfigMap documentation](https://docs.spring.io/spring-cloud-kubernetes/reference/property-source-config/configmap-propertysource.html).
+
 ### 🐳 Kind Cluster Setup (Recommended for Testing)
 
 OOMlet includes comprehensive Kind cluster configuration for easy local Kubernetes testing with ingress support.
