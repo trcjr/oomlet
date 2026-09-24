@@ -24,6 +24,7 @@ public class FileHandleController {
 
     @GetMapping("/open-files")
     public Map<String, Object> openFiles(@RequestParam(name = "count") int count) {
+        logger.info("Received request to open {} files", count);
         return fileHandleService.openFiles(count);
     }
 }
