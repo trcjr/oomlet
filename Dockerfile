@@ -1,7 +1,7 @@
 # ========================
 # Stage 1 - Build
 # ========================
-FROM maven:3-eclipse-temurin-24 AS builder
+FROM maven:3-eclipse-temurin-27 AS builder
 
 WORKDIR /build
 
